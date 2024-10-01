@@ -89,20 +89,23 @@ const onInputEvent = (event) => {
 <template>
   <div class="search-container">
 
-    <div class="input-container">
+    <div class="input-label-container">
       <label :for="inputId">{{ label }}</label>
-      <input
-          :id="inputId"
-          type="text"
-          :value="modelValue"
-          :placeholder="placeholder"
-          :required="required"
-          @input="onInputEvent"
-          @keydown.down.prevent="onArrowDown"
-          @keydown.up.prevent="onArrowUp"
-          @keydown.enter.prevent="onEnter"
-          @keydown.esc="hideSuggestions"
-      />
+      <div class="input-container">
+        <input
+            :id="inputId"
+            type="text"
+            :value="modelValue"
+            :placeholder="placeholder"
+            :required="required"
+            class="player-input"
+            @input="onInputEvent"
+            @keydown.down.prevent="onArrowDown"
+            @keydown.up.prevent="onArrowUp"
+            @keydown.enter.prevent="onEnter"
+            @keydown.esc="hideSuggestions"
+        />
+      </div>
     </div>
 
     <!-- Suggestions List -->
@@ -124,10 +127,48 @@ const onInputEvent = (event) => {
 
 <style scoped>
 
-.input-container {
+.input-label-container {
   display: grid;
   grid-template-rows: auto;
 }
+
+.input-container {
+  position: relative; /* Allows the pseudo-element to be positioned relative to the input */
+  display: inline-block;
+  width: 100%; /* This makes the input expand to the parent's full width */
+}
+
+.input-container .player-input {
+  position: relative;
+  z-index: 1; /* Ensures the input element is above the gradient border */
+  border-radius: 10px; /* Adjust this if you want a different radius */
+  border: 4px solid transparent; /* Transparent border */
+  background: white; /* Background color of the input field */
+  padding: 10px;
+  font-size: 16px;
+  color: black;
+  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
+  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
+  width: 100%; /* This makes the input expand to the parent's full width */
+}
+
+.input-container::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 10px; /* Same border radius as input */
+  padding: 3px; /* Matches the border width */
+  background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient border */
+  z-index: 0; /* Ensures the gradient border is behind the input */
+}
+
+.input-container .player-input:focus {
+  outline: none; /* Optional: Remove default focus outline */
+}
+
 
 .search-container {
   position: relative;

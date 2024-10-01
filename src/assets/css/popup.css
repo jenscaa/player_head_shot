@@ -1,3 +1,8 @@
 body {
-    min-width: 300px;
+    min-width: 350px;
+    margin: 0;
+    padding: 0;
+    background-image: url("../img/SniperInForrest2.0.jpg");
+    background-size: cover;
+    overflow-x: hidden;
 }

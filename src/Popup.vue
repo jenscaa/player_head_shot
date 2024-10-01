@@ -121,8 +121,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 <style scoped>
 .popup-wrapper {
-  padding: 20px;
   font-family: Arial, sans-serif;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.input-container {
+  display: flex; /* Ensure items are laid out in a row or column */
+  flex-direction: column; /* Stack elements vertically */
+  gap: 10px; /* Increase gap between input components */
 }
 
 input {
