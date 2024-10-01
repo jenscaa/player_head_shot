@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@vitejs/plugin-vue": "^5.1.4",
+    "vite": "^5.4.8",
+    "vue": "^3.5.10"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite-plugin-static-copy": "^1.0.6"
+  }
+}
