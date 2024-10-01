@@ -18,10 +18,11 @@ const props = defineProps({
 </template>
 
 <style scoped>
+
 .btn {
   justify-self: center;
-  width: 180px;
-  height: 55px;
+  width: 110px;
+  height: 40px;
   background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
   border-radius: 10px;
   border: none;

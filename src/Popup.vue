@@ -85,7 +85,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 <template>
   <div class="popup-wrapper">
     <div class="popup-container">
-      <h1>PlayerHeadShot</h1>
+      <h1 class="title">PlayerHeadShot</h1>
       <div class="input-container">
         <PlayerInput input-id="player-input"
                      label="Player Name"
@@ -120,20 +120,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 </template>
 
 <style scoped>
+.title {
+  text-align: center;
+  align-self: center;
+  justify-content: center;
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
+
 .popup-wrapper {
   font-family: Arial, sans-serif;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.popup-container {
+  display: grid;
+  align-items: center;
 }
 
 .input-container {
   display: flex; /* Ensure items are laid out in a row or column */
   flex-direction: column; /* Stack elements vertically */
-  gap: 10px; /* Increase gap between input components */
+  gap: 15px; /* Increase gap between input components */
+  align-items: center;
 }
 
-input {
-  margin-top: 10px;
-  padding: 5px;
-  font-size: 14px;
+.button-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
 }
 </style>

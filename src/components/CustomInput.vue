@@ -38,23 +38,71 @@ const onInputEvent = (event) => {
 </script>
 
 <template>
-  <div class="input-container">
+  <div class="input-label-container">
     <label :for="inputId">{{ label }}</label>
-    <input :id="inputId"
-           @input="onInputEvent"
-           :type="type"
-           :placeholder="placeholder"
-           :required="required"
-           :max="max"
-           :min="min"
-           :value="modelValue"
-    />
+    <div class="input-container">
+      <input :id="inputId"
+             class="custom-input"
+             @input="onInputEvent"
+             :type="type"
+             :placeholder="placeholder"
+             :required="required"
+             :max="max"
+             :min="min"
+             :value="modelValue"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.input-container {
+
+label {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.input-label-container {
   display: grid;
   grid-template-rows: auto;
+  gap: 5px;
+  width: 80%;
 }
+
+.input-container {
+  position: relative; /* Allows the pseudo-element to be positioned relative to the input */
+  display: inline-block;
+  width: 100%;
+}
+
+.input-container .custom-input {
+  position: relative;
+  border-radius: 10px; /* Adjust this if you want a different radius */
+  border: 4px solid transparent; /* Transparent border */
+  background: white; /* Background color of the input field */
+  padding: 10px;
+  font-size: 14px;
+  color: black;
+  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
+  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
+  width: 100%; /* This makes the input expand to the parent's full width */
+}
+
+.input-container::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 10px; /* Same border radius as input */
+  padding: 3px; /* Matches the border width */
+  background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient border */
+}
+
+.input-container .custom-input:focus {
+  outline: none; /* Optional: Remove default focus outline */
+}
+
 </style>

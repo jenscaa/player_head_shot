@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import CustomLi from "./CustomLi.vue";
 const emit = defineEmits(['inputChangeEvent', 'selectedPlayerEvent']);
 const props = defineProps({
   label: {
@@ -25,17 +26,6 @@ const props = defineProps({
   }
 
 });
-
-// Sample list of suggestions
-const suggestions = ref([
-  'Lionel Messi',
-  'Cristiano Ronaldo',
-  'Kylian Mbappé',
-  'Neymar Jr',
-  'Kevin De Bruyne',
-  'Robert Lewandowski',
-  'Mohamed Salah'
-]);
 
 // State for search query, highlighted index, and showSuggestions flag
 const highlightedIndex = ref(-1); // No suggestion highlighted initially
@@ -110,26 +100,30 @@ const onInputEvent = (event) => {
 
     <!-- Suggestions List -->
     <ul v-if="showSuggestions && playerList.length" class="suggestions-list">
-      <li
-          v-for="(item, index) in playerList"
-          :key="index"
-          :class="{ 'highlighted': index === highlightedIndex }"
-          @click="selectSuggestion(item.name)"
+      <CustomLi v-for="(item, index) in playerList"
+                :key="index"
+                :class="{ 'highlighted': index === highlightedIndex }"
+                @click="selectSuggestion(item.name)"
+                :name="item.name"
+                :rating="item.rating"
       >
-        <div class="li-container">
-          <p>{{ item.name }}</p>
-          <p>{{ item.rating }}</p>
-        </div>
-      </li>
+      </CustomLi>
     </ul>
   </div>
 </template>
 
 <style scoped>
 
+label {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
 .input-label-container {
   display: grid;
   grid-template-rows: auto;
+  gap: 5px;
 }
 
 .input-container {
@@ -145,7 +139,7 @@ const onInputEvent = (event) => {
   border: 4px solid transparent; /* Transparent border */
   background: white; /* Background color of the input field */
   padding: 10px;
-  font-size: 16px;
+  font-size: 14px;
   color: black;
   background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
   box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
@@ -169,22 +163,26 @@ const onInputEvent = (event) => {
   outline: none; /* Optional: Remove default focus outline */
 }
 
-
 .search-container {
-  position: relative;
-  width: 300px;
+  position: relative; /* Important: Ensures suggestions list is positioned correctly */
+  justify-content: center;
+  align-items: center;
+  width: 80%;
 }
 
 .suggestions-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #ccc;
+  border: 1px solid #ff9a5a;
+  border-radius: 5px;
   max-height: 200px;
   overflow-y: auto;
   background-color: white;
   position: absolute;
   width: 100%;
+  z-index: 1000; /* Ensure this is above other elements */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for better visibility */
 }
 
 .suggestions-list li {
@@ -193,7 +191,7 @@ const onInputEvent = (event) => {
 }
 
 .suggestions-list li.highlighted {
-  background-color: #007BFF;
+  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
   color: white;
 }
 </style>
