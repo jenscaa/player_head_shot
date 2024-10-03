@@ -4,11 +4,19 @@ import CustomInput from "./components/CustomInput.vue";
 import CustomButton from "./components/CustomButton.vue";
 import CustomSlider from "./components/CustomSlider.vue";
 import PlayerInput from "./components/PlayerInput.vue";
+import AutoListCheckBox from "./components/AutoListCheckBox.vue";
+import SnipingResults from "./components/SnipingResults.vue";
+import CustomLog from "./components/CustomLog.vue";
 
 const playerName = ref('');
 const nameList = ref([]);
-const searchLimit = ref(500);
+const searchLimit = ref();
 const maxBuyNow = ref();
+const autoListChecked = ref(false);
+const searches = ref(0);
+const buys = ref(0);
+const fails = ref(0);
+const logList = ref([]);
 
 const onInputChange = async (newValue) => {
   playerName.value = newValue
@@ -32,6 +40,10 @@ const onPlayerSelected = async (newValue) => {
   } else {
     console.log("No active tab found. ")
   }
+}
+
+const onCheckedChanged = (newValue) => {
+  autoListChecked.value = newValue
 }
 
 const startSearch = async () => {
@@ -80,6 +92,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+const deleteThisFunction = () =>{
+  logList.value.push("Hello there");
+  console.log(logList.value)
+}
+
 </script>
 
 <template>
@@ -96,23 +113,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                      @selectedPlayerEvent="onPlayerSelected"
         >
         </PlayerInput>
-        <CustomInput input-id="search-limit-input"
-                     label="Search Limit"
-                     v-model="searchLimit"
-                     placeholder="Search Limit"> <!-- Dont use max if you dont want to get banned -->
-        </CustomInput>
-        <CustomInput input-id="max-buy-now-input"
-                     label="Max Buy Now"
-                     v-model="maxBuyNow"
-                     max="15000000"
-                     placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
-        </CustomInput>
+        <div class="custom-button-container">
+          <CustomInput input-id="search-limit-input"
+                       label="Search Limit"
+                       v-model="searchLimit"
+                       placeholder="No limit"> <!-- Dont use max if you dont want to get banned -->
+          </CustomInput>
+          <CustomInput input-id="max-buy-now-input"
+                       label="Max Buy Now"
+                       v-model="maxBuyNow"
+                       max="15000000"
+                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+          </CustomInput>
+        </div>
+        <AutoListCheckBox @checkChangedEvent="onCheckedChanged"></AutoListCheckBox>
+        <div v-if="autoListChecked" class="custom-button-container">
+          <CustomInput input-id="min-list-price-input"
+                       label="Min list price"
+                       max="15000000"
+                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+          </CustomInput>
+          <CustomInput input-id="max-buy-now-input"
+                       label="Max Buy Now"
+                       v-model="maxBuyNow"
+                       max="15000000"
+                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+          </CustomInput>
+        </div>
         <CustomSlider></CustomSlider>
       </div>
       <div class="button-container">
         <CustomButton button-id="stop-button" text="Stop"></CustomButton>
         <CustomButton button-id="Search-button" text="Search"></CustomButton>
       </div>
+      <SnipingResults :fails="fails" :buys="buys" :searches="searches"></SnipingResults>
+      <CustomLog :logList="logList"></CustomLog>
+      <button @click="deleteThisFunction">Press me</button>
       <button @click="logAllElements">Log All</button>
       <button @click="startSearch">Start</button>
     </div>
@@ -120,6 +156,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 </template>
 
 <style scoped>
+
 .title {
   text-align: center;
   align-self: center;
@@ -146,9 +183,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   align-items: center;
 }
 
+.custom-button-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  padding: 0 18px;
+}
+
 .button-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-
 }
 </style>

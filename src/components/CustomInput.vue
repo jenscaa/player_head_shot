@@ -76,11 +76,32 @@ label {
   width: 100%;
 }
 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
 .input-container .custom-input {
   position: relative;
   border-radius: 10px; /* Adjust this if you want a different radius */
   border: 4px solid transparent; /* Transparent border */
-  background: white; /* Background color of the input field */
+  background: rgba(255, 255, 255, .8);; /* Background color of the input field */
+  padding: 10px;
+  font-size: 14px;
+  color: black;
+  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
+  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
+  width: 100%; /* This makes the input expand to the parent's full width */
+  transition: background-color 150ms ease-in-out;
+}
+
+.input-container .custom-input:hover {
+  position: relative;
+  border-radius: 10px; /* Adjust this if you want a different radius */
+  border: 4px solid transparent; /* Transparent border */
+  background: rgba(255, 255, 255, 1);
   padding: 10px;
   font-size: 14px;
   color: black;

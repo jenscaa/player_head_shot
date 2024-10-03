@@ -21,10 +21,10 @@ const props = defineProps({
 
 .btn {
   justify-self: center;
-  width: 110px;
+  width: 150px;
   height: 40px;
   background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
-  border-radius: 10px;
+  border-radius: 20px;
   border: none;
   padding: 10px;
   margin: 20px 0;

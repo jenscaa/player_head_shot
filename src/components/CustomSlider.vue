@@ -72,6 +72,7 @@ const onInputChange = (event) => {
 }
 
 .slider {
+  margin: 10px 0 0;
   --slider-value: 60;
   -webkit-appearance: none; /* Remove default appearance */
   display: flex;
@@ -105,12 +106,21 @@ const onInputChange = (event) => {
   margin-top: -5px; /* Adjust to center the thumb over the track */
   position: relative;
   z-index: 2;
+  transition: transform 150ms ease-in-out;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  -webkit-appearance: none;
+  transform: scale(1.20);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 p {
+  margin: 10px 0 0;
   font-size: 18px;
   font-weight: bold;
   color: white;
+  text-align: center;
 }
 
 .glider-button {
@@ -125,7 +135,7 @@ p {
   border-radius: 50%; /* Make it a perfect circle */
   border: none;
   padding: 0; /* Remove padding */
-  margin: 20px 0;
+  margin: 0 0;
   cursor: pointer;
   font-weight: bold;
   color: white;
