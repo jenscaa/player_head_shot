@@ -8,6 +8,7 @@ import AutoListCheckBox from "./components/AutoListCheckBox.vue";
 import SnipingResults from "./components/SnipingResults.vue";
 import CustomLog from "./components/CustomLog.vue";
 
+const running = ref(false);
 const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
@@ -18,13 +19,29 @@ const buys = ref(0);
 const fails = ref(0);
 const logList = ref([]);
 
-const onInputChange = async (newValue) => {
+const onPlayerInputChange = async (newValue) => {
   playerName.value = newValue
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, { action: 'inputChange', value: playerName.value });
+  } else {
+    console.log("No active tab found. ")
+  }
+}
+
+const onSearchLimitChange = (newValue) => {
+  searchLimit.value = newValue
+}
+
+const onMaxBuyNowChange = async (newValue) => {
+  maxBuyNow.value = newValue
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, { action: 'maxBuyNowChange', value: maxBuyNow.value });
   } else {
     console.log("No active tab found. ")
   }
@@ -47,11 +64,25 @@ const onCheckedChanged = (newValue) => {
 }
 
 const startSearch = async () => {
+  running.value = true;
+  console.log(searchLimit.value)
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit });
+    chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit.value });
+  } else {
+    console.log("No actiive tab found. ")
+  }
+}
+
+const stopSearch = async () => {
+  running.value = false;
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, { action: 'stopSearch' });
   } else {
     console.log("No actiive tab found. ")
   }
@@ -90,6 +121,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     sendResponse({ success: true, message: 'successful'})
   }
+
+  else if (request.action === 'finishedSearch') {
+    running.value = false
+    sendResponse({ success: true, message: 'successful'})
+  }
 });
 
 const deleteThisFunction = () =>{
@@ -109,7 +145,8 @@ const deleteThisFunction = () =>{
                      v-model="playerName"
                      placeholder="Search for a player"
                      :playerList="nameList"
-                     @inputChangeEvent="onInputChange"
+                     :disabled="running"
+                     @inputChangeEvent="onPlayerInputChange"
                      @selectedPlayerEvent="onPlayerSelected"
         >
         </PlayerInput>
@@ -117,12 +154,16 @@ const deleteThisFunction = () =>{
           <CustomInput input-id="search-limit-input"
                        label="Search Limit"
                        v-model="searchLimit"
+                       :disabled="running"
+                       @inputChangeEvent="onSearchLimitChange"
                        placeholder="No limit"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
           <CustomInput input-id="max-buy-now-input"
                        label="Max Buy Now"
                        v-model="maxBuyNow"
+                       :disabled="running"
                        max="15000000"
+                       @inputChangeEvent="onMaxBuyNowChange"
                        placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
@@ -130,12 +171,14 @@ const deleteThisFunction = () =>{
         <div v-if="autoListChecked" class="custom-button-container">
           <CustomInput input-id="min-list-price-input"
                        label="Min list price"
+                       :disabled="running"
                        max="15000000"
                        placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
           <CustomInput input-id="max-buy-now-input"
                        label="Max Buy Now"
                        v-model="maxBuyNow"
+                       :disabled="running"
                        max="15000000"
                        placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
@@ -143,8 +186,19 @@ const deleteThisFunction = () =>{
         <CustomSlider></CustomSlider>
       </div>
       <div class="button-container">
-        <CustomButton button-id="stop-button" text="Stop"></CustomButton>
-        <CustomButton button-id="Search-button" text="Search"></CustomButton>
+        <CustomButton button-id="stop-button"
+                      text="Stop"
+                      @click="stopSearch"
+                      :disabled="!running"
+
+        >
+        </CustomButton>
+        <CustomButton button-id="Search-button"
+                      text="Search"
+                      @click="startSearch"
+                      :disabled="running"
+        >
+        </CustomButton>
       </div>
       <SnipingResults :fails="fails" :buys="buys" :searches="searches"></SnipingResults>
       <CustomLog :logList="logList"></CustomLog>

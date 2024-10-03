@@ -1,7 +1,48 @@
+let running = false;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'startSearch') {
-        console.log("REACHED-----------------------------------------------------------")
-        pressSearchButton()
+        running = true;
+        console.log("REACHED-----------------------------------------------------------");
+        console.log(request.value);
+
+        let promiseChain = Promise.resolve();  // Start with a resolved promise
+
+        // Unlimited loop if request.value is undefined
+        if (request.value === undefined || request.value === '') {
+            function loop() {
+                if (!running) return;  // Exit the loop if running is set to false
+                promiseChain = promiseChain.then(() => {
+                    console.log(`Starting search iteration`);
+                    return search();  // Return the promise from the search function
+                }).then(loop);  // Chain the next iteration
+            }
+            loop();  // Start the loop
+        } else {
+            let i = 0;
+            console.log("REACHED HERE MAN-----------------------------------------------------------");
+
+            function loop() {
+                if (!running || i >= request.value) {
+                    chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
+                        console.log("Response from popup:", response);
+                    });
+                    return;
+                }  // Exit if running is false or i exceeds the limit
+                promiseChain = promiseChain.then(() => {
+                    console.log(`Starting search iteration`);
+                    return search();  // Return the promise from the search function
+                }).then(() => {
+                    i++;
+                    loop();  // Chain the next iteration
+                });
+            }
+            loop();  // Start the loop
+        }
+    }
+
+    else if (request.action === 'stopSearch') {
+        running = false;
+        console.log("Running: ", running);
     }
 
     else if (request.action === 'playerSelected') {
@@ -27,6 +68,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }, 1000);
     }
 
+    else if (request.action === 'maxBuyNowChange') {
+        console.log("REACHEDGJKLAGDLSHGD____________________________________________________________________________")
+        const priceInputs = document.getElementsByClassName('ut-number-input-control');
+        console.log(priceInputs)
+        const maxBuyNowInput = priceInputs[3];
+        maxBuyNowInput.value = request.value
+        console.log(maxBuyNowInput)
+        var inputEvent = new Event('input', { bubbles: true });
+        maxBuyNowInput.dispatchEvent(inputEvent);
+    }
+
     else if (request.action === 'logElements') {
         // Query all elements on the page
         const allElements = document.querySelectorAll('*');
@@ -40,6 +92,50 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ status: 'Elements logged successfully!' });
     }
 });
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Utility to sleep (delay) for a specific amount of time
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Example of pressing a button
+function search() {
+    return new Promise((resolve) => {
+        // Simulate pressing the first button
+        pressButtonByClassName('call-to-action');
+
+        // Wait for 500 milliseconds before proceeding
+        setTimeout(() => {
+            // Simulate finding the h1 element with text "Search Results"
+            const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
+            console.log("WE ARE HERE NOW");
+            console.log(h1Element);
+
+            // Get the button within the same div-container
+            const button = h1Element?.closest('div.ut-navigation-bar-view.navbar-style-landscape.currency-purchase').querySelector('button.ut-navigation-button-control');
+            console.log(button);
+
+            // Simulate pressing the found button
+            if (button) {
+                pressButton(button); // Click the button
+                console.log("Button clicked");
+            }
+
+            // Wait for another 1000 milliseconds before resolving the promise
+            setTimeout(() => {
+                console.log("Waited for 1000ms after clicking the button");
+                resolve();  // Signal that the search is done and can move to the next iteration
+            }, 1000);
+
+        }, 500); // First wait for 500 milliseconds
+    });
+}
+
+
 
 const getListOfNames = () => {
     const list = [];
@@ -59,12 +155,14 @@ const getListOfNames = () => {
     return list;
 }
 
-const pressSearchButton = () => {
-    pressButtonByClassName('call-to-action');
+const pressSearchButton = (timeout) => {
     setTimeout(() => {
-        pressButtonByClassName('ut-navigation-button-control'); // Click the button after 1 seconds
-        console.log("Button clicked:");
-    }, 1000); // 1000 milliseconds = 5 seconds
+        pressButtonByClassName('call-to-action');
+        setTimeout(() => {
+            pressButtonByClassName('ut-navigation-button-control'); // Click the button after 1 seconds
+            console.log("Button clicked:");
+        }, timeout); // 1000 milliseconds = 5 seconds
+    }, 500)
 
 }
 
@@ -85,9 +183,6 @@ const pressButton = (button) => {
     // Create and dispatch mouseup event
     const mouseUpEvent = new MouseEvent('mouseup', {bubbles: true, cancelable: true});
     button.dispatchEvent(mouseUpEvent);
-    // Finally, dispatch the click event
-    const clickEvent = new MouseEvent('click', {bubbles: true, cancelable: true});
-    button.dispatchEvent(clickEvent);
     console.log("Button clicked!");
     console.log(button); // Log the button element
 }

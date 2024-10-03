@@ -20,6 +20,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  disabled: {
+    type: Boolean,
+    required: true
+  },
   playerList: {
     type: Array,
     default: () => []
@@ -54,6 +58,8 @@ const onArrowUp = () => {
 const onEnter = () => {
   if (highlightedIndex.value >= 0) {
     selectSuggestion(props.playerList[highlightedIndex.value].name);
+  } else {
+    selectSuggestion(props.modelValue)
   }
 };
 
@@ -88,6 +94,7 @@ const onInputEvent = (event) => {
             :value="modelValue"
             :placeholder="placeholder"
             :required="required"
+            :disabled="disabled"
             class="player-input"
             @input="onInputEvent"
             @keydown.down.prevent="onArrowDown"
@@ -158,6 +165,13 @@ label {
   background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
   box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
   width: 100%; /* This makes the input expand to the parent's full width */
+}
+
+.input-container .player-input:disabled {
+  opacity: 0.7; /* Make the button semi-transparent */
+  cursor: not-allowed; /* Show a "not-allowed" cursor */
+  box-shadow: none; /* Remove the hover box-shadow effect */
+  transform: none; /* Prevent hover scaling */
 }
 
 .input-container::before {

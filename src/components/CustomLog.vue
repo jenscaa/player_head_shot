@@ -8,10 +8,20 @@ const props = defineProps({
   }
 })
 
+const textAreaLog = ref(null);
+
+// Watch for changes in logList and auto-scroll to the bottom
+watch(() => props.logList, () => {
+  if (textAreaLog.value) {
+    // Update the scrollTop to ensure it scrolls to the bottom
+    textAreaLog.value.scrollTop = textAreaLog.value.scrollHeight;
+  }
+}, { deep: true });
+
 </script>
 
 <template>
-  <textarea class="log" rows="7" cols="50" readonly>{{ logList.join('\n') }}
+  <textarea ref="textAreaLog" class="log" rows="7" cols="50" readonly>{{ logList.join('\n') }}
   </textarea>
 </template>
 

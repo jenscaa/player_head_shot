@@ -29,6 +29,10 @@ const props = defineProps({
   required: {
     type: Boolean,
     default: false
+  },
+  disabled: {
+    type: Boolean,
+    required: true
   }
 });
 
@@ -47,6 +51,7 @@ const onInputEvent = (event) => {
              :type="type"
              :placeholder="placeholder"
              :required="required"
+             :disabled="disabled"
              :max="max"
              :min="min"
              :value="modelValue"
@@ -108,6 +113,13 @@ input[type="number"]::-webkit-outer-spin-button {
   background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
   box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
   width: 100%; /* This makes the input expand to the parent's full width */
+}
+
+.input-container .custom-input:disabled {
+  opacity: 0.7; /* Make the button semi-transparent */
+  cursor: not-allowed; /* Show a "not-allowed" cursor */
+  box-shadow: none; /* Remove the hover box-shadow effect */
+  transform: none; /* Prevent hover scaling */
 }
 
 .input-container::before {
