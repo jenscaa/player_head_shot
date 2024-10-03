@@ -13,6 +13,9 @@ const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
 const maxBuyNow = ref();
+
+
+const rpm = ref(60);
 const autoListChecked = ref(false);
 const searches = ref(0);
 const buys = ref(0);
@@ -63,6 +66,10 @@ const onCheckedChanged = (newValue) => {
   autoListChecked.value = newValue
 }
 
+const onSliderValueChange = (newValue) => {
+  rpm.value = newValue;
+}
+
 const startSearch = async () => {
   running.value = true;
   console.log(searchLimit.value)
@@ -70,7 +77,7 @@ const startSearch = async () => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit.value });
+    chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit.value, rpm: rpm.value });
   } else {
     console.log("No actiive tab found. ")
   }
@@ -183,7 +190,7 @@ const deleteThisFunction = () =>{
                        placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
-        <CustomSlider></CustomSlider>
+        <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
       </div>
       <div class="button-container">
         <CustomButton button-id="stop-button"

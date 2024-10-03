@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 
+const emit = defineEmits(['sliderValueChange'])
+
 // Define a reactive value for the slider
 const sliderRef = ref(null);
 const sliderValue = ref(60)
@@ -9,6 +11,7 @@ const increaseNumber = () => {
   sliderValue.value = (sliderValue.value % 120) + 1
   const slider = sliderRef.value;
   slider.style.setProperty('--slider-value', sliderValue.value);
+  emit('sliderValueChange', sliderValue.value);
 }
 
 // Function to decrease the number, looping back to 120 when it goes below 1
@@ -16,12 +19,14 @@ const decreaseNumber = () => {
   sliderValue.value = sliderValue.value === 1 ? 120 : sliderValue.value - 1;
   const slider = sliderRef.value;
   slider.style.setProperty('--slider-value', sliderValue.value);
+  emit('sliderValueChange', sliderValue.value);
 }
 
 const onInputChange = (event) => {
   const newValue = event.target.value;
   const slider = sliderRef.value;
   slider.style.setProperty('--slider-value', newValue);
+  emit('sliderValueChange', sliderValue.value);
 }
 </script>
 

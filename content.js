@@ -2,18 +2,14 @@ let running = false;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'startSearch') {
         running = true;
-        console.log("REACHED-----------------------------------------------------------");
-        console.log(request.value);
-
         let promiseChain = Promise.resolve();  // Start with a resolved promise
-
         // Unlimited loop if request.value is undefined
         if (request.value === undefined || request.value === '') {
             function loop() {
                 if (!running) return;  // Exit the loop if running is set to false
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search();  // Return the promise from the search function
+                    return search(convertRpmToMilliseconds(request.rpm));  // Return the promise from the search function
                 }).then(loop);  // Chain the next iteration
             }
             loop();  // Start the loop
@@ -30,7 +26,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }  // Exit if running is false or i exceeds the limit
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search();  // Return the promise from the search function
+                    return search(convertRpmToMilliseconds(request.rpm));  // Return the promise from the search function
                 }).then(() => {
                     i++;
                     loop();  // Chain the next iteration
@@ -69,15 +65,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     else if (request.action === 'maxBuyNowChange') {
-        console.log("REACHEDGJKLAGDLSHGD____________________________________________________________________________")
+        console.log("REACHEDGJKLAGDLSHGD____________________________________________________________________________");
+
         const priceInputs = document.getElementsByClassName('ut-number-input-control');
-        console.log(priceInputs)
-        const maxBuyNowInput = priceInputs[3];
-        maxBuyNowInput.value = request.value
-        console.log(maxBuyNowInput)
-        var inputEvent = new Event('input', { bubbles: true });
-        maxBuyNowInput.dispatchEvent(inputEvent);
+        console.log("Price Inputs Found:", priceInputs);
+        console.log("Length of priceInputs:", priceInputs.length);
+
+        // Make sure you're targeting the right input
+        if (priceInputs[3]) {
+            const maxBuyNowInput = priceInputs[3];
+
+            // Log the value you are trying to set
+            console.log("Setting value:", request.value);
+
+            // Set the value of the input
+            maxBuyNowInput.value = request.value;
+
+            // Log the element to see its current state
+            console.log("Updated input element:", maxBuyNowInput);
+
+            // Trigger input and change events
+            var inputEvent = new Event('input', { bubbles: true });
+            var changeEvent = new Event('change', { bubbles: true });
+
+            maxBuyNowInput.dispatchEvent(inputEvent); // Trigger input event
+            maxBuyNowInput.dispatchEvent(changeEvent); // Trigger change event as fallback
+        } else {
+            console.log("Input element at index [3] not found");
+        }
     }
+
 
     else if (request.action === 'logElements') {
         // Query all elements on the page
@@ -103,12 +120,10 @@ function sleep(ms) {
 }
 
 // Example of pressing a button
-function search() {
+function search(milliseconds) {
     return new Promise((resolve) => {
         // Simulate pressing the first button
         pressButtonByClassName('call-to-action');
-
-        // Wait for 500 milliseconds before proceeding
         setTimeout(() => {
             // Simulate finding the h1 element with text "Search Results"
             const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
@@ -129,12 +144,16 @@ function search() {
             setTimeout(() => {
                 console.log("Waited for 1000ms after clicking the button");
                 resolve();  // Signal that the search is done and can move to the next iteration
-            }, 1000);
+            }, milliseconds);
 
         }, 500); // First wait for 500 milliseconds
     });
 }
 
+
+const convertRpmToMilliseconds = (rpm) => {
+    return (60/rpm) * 1000;
+}
 
 
 const getListOfNames = () => {

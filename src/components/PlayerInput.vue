@@ -144,7 +144,7 @@ label {
   z-index: 1; /* Ensures the input element is above the gradient border */
   border-radius: 10px; /* Adjust this if you want a different radius */
   border: 4px solid transparent; /* Transparent border */
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   padding: 10px;
   font-size: 14px;
   color: black;

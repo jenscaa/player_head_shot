@@ -92,7 +92,7 @@ input[type="number"]::-webkit-outer-spin-button {
   position: relative;
   border-radius: 10px; /* Adjust this if you want a different radius */
   border: 4px solid transparent; /* Transparent border */
-  background: rgba(255, 255, 255, .8);; /* Background color of the input field */
+  background: rgba(255, 255, 255, .9);; /* Background color of the input field */
   padding: 10px;
   font-size: 14px;
   color: black;
