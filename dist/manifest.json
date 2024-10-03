@@ -7,6 +7,10 @@
   "action": {
     "default_popup": "./src/popup.html"
   },
+  "icons": {
+    "16": "./assets/target16.png",
+    "48": "./assets/target48.png"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

@@ -65,8 +65,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     else if (request.action === 'maxBuyNowChange') {
-        console.log("REACHEDGJKLAGDLSHGD____________________________________________________________________________");
-
         const priceInputs = document.getElementsByClassName('ut-number-input-control');
         console.log("Price Inputs Found:", priceInputs);
         console.log("Length of priceInputs:", priceInputs.length);
@@ -110,15 +108,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Utility to sleep (delay) for a specific amount of time
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // Example of pressing a button
 function search(milliseconds) {
     return new Promise((resolve) => {
@@ -139,13 +128,15 @@ function search(milliseconds) {
                 pressButton(button); // Click the button
                 console.log("Button clicked");
             }
+            chrome.runtime.sendMessage({ action: 'searched' }, (response) => {
+                console.log("Response from popup:", response);
+            });
 
             // Wait for another 1000 milliseconds before resolving the promise
             setTimeout(() => {
                 console.log("Waited for 1000ms after clicking the button");
                 resolve();  // Signal that the search is done and can move to the next iteration
             }, milliseconds);
-
         }, 500); // First wait for 500 milliseconds
     });
 }
@@ -205,13 +196,3 @@ const pressButton = (button) => {
     console.log("Button clicked!");
     console.log(button); // Log the button element
 }
-
-/*
-const init = function () {
-    const injectElement = document.createElement('div');
-    injectElement.className = 'Hello-There'
-    injectElement.innerHTML = 'Hello There General Kenobi'
-    document.body.append(injectElement);
-}
-init()
- */

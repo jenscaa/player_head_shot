@@ -78,6 +78,7 @@ const startSearch = async () => {
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit.value, rpm: rpm.value });
+    logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
   } else {
     console.log("No actiive tab found. ")
   }
@@ -90,6 +91,7 @@ const stopSearch = async () => {
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, { action: 'stopSearch' });
+    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
   } else {
     console.log("No actiive tab found. ")
   }
@@ -133,6 +135,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     running.value = false
     sendResponse({ success: true, message: 'successful'})
   }
+
+  else if (request.action === 'searched') {
+    searches.value++;
+  }
 });
 
 const deleteThisFunction = () =>{
@@ -171,7 +177,7 @@ const deleteThisFunction = () =>{
                        :disabled="running"
                        max="15000000"
                        @inputChangeEvent="onMaxBuyNowChange"
-                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="Max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
         <AutoListCheckBox @checkChangedEvent="onCheckedChanged"></AutoListCheckBox>
@@ -180,14 +186,14 @@ const deleteThisFunction = () =>{
                        label="Min list price"
                        :disabled="running"
                        max="15000000"
-                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="Min list price">
           </CustomInput>
-          <CustomInput input-id="max-buy-now-input"
-                       label="Max Buy Now"
+          <CustomInput input-id="max-list-price-input"
+                       label="Max list price"
                        v-model="maxBuyNow"
                        :disabled="running"
                        max="15000000"
-                       placeholder="max buy now"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="Max list price"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
         <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
@@ -209,9 +215,14 @@ const deleteThisFunction = () =>{
       </div>
       <SnipingResults :fails="fails" :buys="buys" :searches="searches"></SnipingResults>
       <CustomLog :logList="logList"></CustomLog>
+      <label class="credit-label">Made by:
+        <a href="https://github.com/jenscaa" target="_blank">jenscaa</a>
+      </label>
+      <!--
       <button @click="deleteThisFunction">Press me</button>
       <button @click="logAllElements">Log All</button>
       <button @click="startSearch">Start</button>
+      -->
     </div>
   </div>
 </template>
@@ -255,5 +266,18 @@ const deleteThisFunction = () =>{
 .button-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+.credit-label {
+  color: white;
+  justify-self: center;
+  justify-content: center;
+  text-align: center;
+  margin: 15px 0 5px 0;
+  font-weight: bold;
+}
+
+.credit-label a {
+  color: #ef8765;
 }
 </style>

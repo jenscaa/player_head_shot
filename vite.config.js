@@ -17,6 +17,14 @@ export default defineConfig(async () => {
                     {
                         src: 'content.js',
                         dest: '.'
+                    },
+                    {
+                        src: './src/assets/img/target16.png',
+                        dest: './assets'
+                    },
+                    {
+                        src: './src/assets/img/target48.png',
+                        dest: './assets'
                     }
                 ]
             })
