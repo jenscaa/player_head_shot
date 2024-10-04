@@ -15,9 +15,11 @@ body {
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Set the gradient color */
     border-radius: 10px;
+    cursor: default;
 }
 
 /* Scrollbar track background */
 ::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.9); /* Light background for the track */
+    cursor: default;
 }

@@ -15,7 +15,6 @@ const onCheckedChange = (event) => {
       <input id="checkbox" type="checkbox" class="custom-checkbox" @change="onCheckedChange">
       <label class="checkbox-label" for="checkbox"></label>
     </div>
-
   </div>
 </template>
 

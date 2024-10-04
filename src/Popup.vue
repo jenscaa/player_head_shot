@@ -13,8 +13,8 @@ const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
 const maxBuyNow = ref();
-
-
+const minListPrice = ref();
+const maxListPrice = ref();
 const rpm = ref(60);
 const autoListChecked = ref(false);
 const searches = ref(0);
@@ -138,6 +138,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.action === 'searched') {
     searches.value++;
+    sendResponse({ success: true, message: 'successful'})
+  }
+
+  else if (request.action === 'bought') {
+    buys.value++;
+    logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
+    sendResponse({ success: true, message: 'successful'})
+  }
+
+  else if (request.action === 'failed') {
+    fails.value++;
+    logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
+    sendResponse({ success: true, message: 'successful'})
   }
 });
 
