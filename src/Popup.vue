@@ -16,7 +16,9 @@ const searchLimit = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
-
+const searchResultDelay = ref();
+const confirmDialogDelay = ref();
+const confirmPurchaseDelay = ref();
 const rpm = ref(60);
 const autoListChecked = ref(false);
 const searches = ref(0);
@@ -92,6 +94,18 @@ const onSliderValueChange = (newValue) => {
   rpm.value = newValue;
 }
 
+const onSearchResultDelayChange = (newValue) => {
+  searchResultDelay.value = newValue;
+}
+
+const onConfirmDialogDelayChange = (newValue) => {
+  confirmDialogDelay.value = newValue;
+}
+
+const onCheckPurchaseDelayChange = (newValue) => {
+  confirmPurchaseDelay.value = newValue;
+}
+
 const startSearch = async () => {
   running.value = true;
   console.log(searchLimit.value)
@@ -101,11 +115,14 @@ const startSearch = async () => {
   if (tab) {
     chrome.tabs.sendMessage(tab.id, {
       action: 'startSearch',
-      value: searchLimit.value,
+      searchLimit: searchLimit.value,
       rpm: rpm.value,
       checked: autoListChecked.value,
       minList: minListPrice.value,
-      maxList: maxListPrice.value
+      maxList: maxListPrice.value,
+      searchResultDelay: searchResultDelay.value,
+      confirmDialogDelay: confirmDialogDelay.value,
+      confirmPurchaseDelay: confirmPurchaseDelay.value
     });
     logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
   } else {
@@ -122,23 +139,6 @@ const stopSearch = async () => {
     chrome.tabs.sendMessage(tab.id, { action: 'stopSearch' });
   } else {
     console.log("No actiive tab found. ")
-  }
-}
-
-// TODO remove this one
-const logAllElements = async () => {
-  // Current active tab
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-
-  console.log(tab.url)
-
-  // Send a message to the content script to access elements
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'logElements' });
-  } else {
-    console.log("No active tab found.");
   }
 }
 
@@ -195,20 +195,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-const test1 = () =>{
-  sniperHeadShotAudio.play();
-}
-
-const test2 = () =>{
-  sniperMissAudio.play();
-}
-
-const deleteThisFunction = () =>{
-  logList.value.push("Hello there");
-  console.log(logList.value)
-}
-
-
 </script>
 
 <template>
@@ -264,12 +250,47 @@ const deleteThisFunction = () =>{
                        @inputChangeEvent="onMaxListPriceChange"
                        :max="15000000"
                        :min="0"
-                       placeholder="Max list price"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="Max list price">
           </CustomInput>
         </div>
         <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
         <div v-if="advancedSettings" class="advanced-settings-container">
-
+          <div class="advanced-label-container">
+            <label class="advanced-label description">If you are experiencing that the bot fails to purchase some times, or gets stuck, try to increase these delay metrics: </label>
+          </div>
+          <div class="advanced">
+            <CustomInput input-id="wait-search-results-input"
+                         :disabled="!advancedSettings"
+                         v-model="searchResultDelay"
+                         @inputChangeEvent="onSearchResultDelayChange"
+                         :max="1000"
+                         :min="0"
+                         placeholder="Default 150 ms"
+            ></CustomInput>
+            <label class="advanced-label">Delay time for search results (milliseconds)</label>
+          </div>
+          <div class="advanced">
+            <CustomInput input-id="wait-confirm-dialog-input"
+                         :disabled="!advancedSettings"
+                         v-model="confirmDialogDelay"
+                         @inputChangeEvent="onConfirmDialogDelayChange"
+                         :max="1000"
+                         :min="0"
+                         placeholder="Default 50 ms"
+            ></CustomInput>
+            <label class="advanced-label">Delay time for confirm dialog (milliseconds)</label>
+          </div>
+          <div class="advanced">
+            <CustomInput input-id="wait-confirm-purchase-input"
+                         :disabled="!advancedSettings"
+                         v-model="confirmPurchaseDelay"
+                         @inputChangeEvent="onCheckPurchaseDelayChange"
+                         :max="1000"
+                         :min="0"
+                         placeholder="Default 500 ms"
+            ></CustomInput>
+            <label class="advanced-label">Delay time for purchase confirmation (milliseconds)</label>
+          </div>
         </div>
 
         <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
@@ -279,7 +300,6 @@ const deleteThisFunction = () =>{
                       text="Stop"
                       @click="stopSearch"
                       :disabled="!running"
-
         >
         </CustomButton>
         <CustomButton button-id="Search-button"
@@ -294,13 +314,6 @@ const deleteThisFunction = () =>{
       <label class="credit-label">Made by:
         <a href="https://github.com/jenscaa" target="_blank">jenscaa</a>
       </label>
-      <!--
-      <button @click="test1">Test sound1</button>
-      <button @click="test2">Test sound2</button>
-      <button @click="deleteThisFunction">Press me</button>
-      <button @click="logAllElements">Log All</button>
-      <button @click="startSearch">Start</button>
-      -->
     </div>
   </div>
 </template>
@@ -326,7 +339,7 @@ const deleteThisFunction = () =>{
   align-items: center;
 }
 
-.input-container {
+.input-container, .advanced-settings-container {
   display: grid;
   grid-template-rows: auto;
   gap: 15px;
@@ -343,8 +356,25 @@ const deleteThisFunction = () =>{
   cursor: pointer;
 }
 
-.advanced-settings-container {
+.advanced-label-container {
+  justify-content: center;
+  align-content: center;
+  padding: 0 36px;
+}
 
+.advanced {
+  justify-self: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Changed from .5fr */
+  justify-items: center;
+  padding: 0 18px;
+}
+
+.advanced-label {
+  color: white;
+  align-self: center;
+  font-weight: bold;
+  text-align: start;
 }
 
 .custom-button-container {

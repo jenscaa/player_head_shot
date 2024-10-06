@@ -1,20 +1,30 @@
 let running = false;
 let currentPlayer = '';
+let searchResultDelayWait = 150
+let confirmDialogDelayWait = 50
+let confirmPurchaseDelayWait = 500
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'startSearch') {
         running = true;
         const eafcPlayerInput = document.querySelector('input.ut-text-input-control');
         currentPlayer = eafcPlayerInput.value
+        searchResultDelayWait = request.searchResultDelay || 150;
+        confirmDialogDelayWait = request.confirmDialogDelay || 50;
+        confirmPurchaseDelayWait = request.confirmPurchaseDelay || 500;
+        console.log(searchResultDelayWait)
+        console.log(confirmDialogDelayWait)
+        console.log(confirmPurchaseDelayWait)
 
         let i = 0;
         let promiseChain = Promise.resolve();  // Start with a resolved promise
         // Unlimited loop if request.value is undefined
-        if (request.value === undefined || request.value === '') {
+        if (request.searchLimit === undefined || request.searchLimit === '') {
             function loop() {
                 if (!running) return;  // Exit the loop if running is set to false
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
+                    return search2(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
                 }).then(() => {
                     i++
                     loop();
@@ -30,7 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         console.log("Response from popup:", response);
                     });
                     return;
-                } else if (i >= request.value) {
+                } else if (i >= request.searchLimit) {
                     chrome.runtime.sendMessage({ action: 'reachedSearchLimit' }, (response) => {
                         console.log("Response from popup:", response);
                     });
@@ -38,7 +48,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
+                    return search2(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
                 }).then(() => {
                     i++;
                     loop();  // Chain the next iteration
@@ -260,76 +270,96 @@ const search = (milliseconds, index, checked, minList, maxList) => {
                     console.log("1")
                 }, 300); // After waiting 100 milliseconds, wait another 300 to see the go-back button
             }
-        }, 100) // Wait 100 milliseconds to see search results
+        }, 150) // Wait 100 milliseconds to see search results
     });
 }
 
 // Utility function to simulate waiting (use in place of setTimeout)
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function search2(milliseconds, index) {
-    // Press the initial button
+async function search2(milliseconds, index, checked, minList, maxList) {
+    // Updates bid price for refreshing search
+    updateMinBidPrice(index);
+
+    // Press the initial search button
     pressButtonByClassName('call-to-action');
 
-    // Wait 80 milliseconds for result to show
-    await wait(80);
+    // Wait for results to show
+    await wait(searchResultDelayWait);
 
     const parentDiv = document.querySelector('div.paginated-item-list.ut-pinned-list');
-    const liElement = parentDiv.querySelector('li.listFUTItem.has-auction-data.selected');
-    console.log(parentDiv, liElement);
+    const liElement = parentDiv?.querySelector('li.listFUTItem.has-auction-data.selected');
 
     if (liElement) {
         const buyButton = document.querySelector('button.btn-standard.buyButton.currency-coins');
         console.log(buyButton);
 
         if (buyButton && !buyButton.disabled) {
-            console.log("The buy button is not disabled.");
-            pressButton(buyButton);
-
-            await wait(100);
-
-            const confirmDiv = document.querySelector('div.ea-dialog-view--body');
-            const pElement = confirmDiv.querySelector('p.ea-dialog-view--msg');
-            const string = pElement.textContent;
-            const value = extractValue(string);
-
-            // Confirm the purchase
-            const confirmButton = confirmDiv.querySelector('div.ut-button-group button');
-            pressButton(confirmButton);
-
-            await wait(100);
-
-            const boughtLi = parentDiv.querySelector('li.listFUTItem.has-auction-data.selected.won');
-            if (boughtLi) {
-                chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value });
-            } else {
-                chrome.runtime.sendMessage({ action: 'failed', name: currentPlayer, price: value });
-            }
+            // Perform the buy action
+            await handlePurchase(buyButton, checked, minList, maxList);
         } else {
             console.log("The buy button is disabled.");
         }
+    } else {
+        console.log("No search results found.");
     }
 
-    // Perform the next search step (after the action is complete)
+    // Proceed to the next step of the search after action
     await performNextSearchStep(milliseconds);
 }
 
-async function performNextSearchStep(milliseconds) {
-    // Simulate finding the h1 element with text "Search Results"
-    const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
-    const button = h1Element?.closest('div.ut-navigation-bar-view.navbar-style-landscape.currency-purchase').querySelector('button.ut-navigation-button-control');
+async function handlePurchase(buyButton, checked, minList, maxList) {
+    // Press buy button
+    pressButton(buyButton);
+    await wait(confirmDialogDelayWait); // Wait for the confirm dialog to appear
 
-    // Simulate pressing the found button
+    const confirmDiv = document.querySelector('div.ea-dialog-view--body');
+    const pElement = confirmDiv.querySelector('p.ea-dialog-view--msg');
+    const string = pElement?.textContent || '';
+    const value = extractValue(string);
+
+    // Confirm the purchase
+    const confirmButton = confirmDiv.querySelector('div.ut-button-group button');
+    pressButton(confirmButton);
+
+    await wait(confirmPurchaseDelayWait); // Wait to see if the player was actually bought
+
+    const boughtLi = document.querySelector('li.listFUTItem.has-auction-data.selected.won');
+    if (boughtLi) {
+        chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value });
+
+        // List the card if `checked` is true
+        if (checked) {
+            await listCard(minList, maxList);
+            chrome.runtime.sendMessage({ action: 'listed', name: currentPlayer, minList, maxList });
+        }
+    } else {
+        chrome.runtime.sendMessage({ action: 'failed', name: currentPlayer, price: value });
+    }
+}
+
+async function performNextSearchStep(milliseconds) {
+    await wait(300); // Must wait in order to avoid getting stuck
+    // Find the "Search Results" element and its associated button
+    const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
+    const button = h1Element?.closest('div.ut-navigation-bar-view.navbar-style-landscape.currency-purchase')
+        ?.querySelector('button.ut-navigation-button-control');
+
+
+
+    // Press the button to return to the search results
     if (button) {
         pressButton(button);
-        console.log("Button clicked");
+        console.log("Button clicked to go back to search results.");
     }
 
     chrome.runtime.sendMessage({ action: 'searched' });
 
+    // Wait for the specified milliseconds before resolving the search promise
     await wait(milliseconds);
-    console.log("Waited for 1000ms after clicking the button.");
+    console.log(`Waited for ${milliseconds}ms before proceeding.`);
 }
+
 
 const convertRpmToMilliseconds = (rpm) => {
     return (60/rpm) * 1000;
