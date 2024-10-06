@@ -25,6 +25,14 @@ export default defineConfig(async () => {
                     {
                         src: './src/assets/img/target48.png',
                         dest: './assets'
+                    },
+                    {
+                        src: './src/assets/sound/SniperHeadShot.MP3',
+                        dest: './assets'
+                    },
+                    {
+                        src: './src/assets/sound/SniperMiss.MP3',
+                        dest: './assets'
                     }
                 ]
             })

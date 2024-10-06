@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 if (!running) return;  // Exit the loop if running is set to false
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search(convertRpmToMilliseconds(request.rpm), i);  // Return the promise from the search function
+                    return search(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
                 }).then(() => {
                     i++
                     loop();
@@ -25,15 +25,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             console.log("REACHED HERE MAN-----------------------------------------------------------");
 
             function loop() {
-                if (!running || i >= request.value) {
+                if (!running) {
                     chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
                         console.log("Response from popup:", response);
                     });
                     return;
-                }  // Exit if running is false or i exceeds the limit
+                } else if (i >= request.value) {
+                    chrome.runtime.sendMessage({ action: 'reachedSearchLimit' }, (response) => {
+                        console.log("Response from popup:", response);
+                    });
+                    return;
+                }
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
-                    return search(convertRpmToMilliseconds(request.rpm),i);  // Return the promise from the search function
+                    return search(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
                 }).then(() => {
                     i++;
                     loop();  // Chain the next iteration
@@ -52,6 +57,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("REACHED_____________________________________________________________________________________________________________________")
         const eafcPlayerResults = document.getElementsByClassName('ut-button-group playerResultsList');
         // Todo update this name error. I just dont care now
+
+
+
         const children = eafcPlayerResults[0]?.children;
         const button = children[0];
         setTimeout(() => {
@@ -117,33 +125,47 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 
-const search = (milliseconds, index) => {
+const search = (milliseconds, index, checked, minList, maxList) => {
     return new Promise((resolve) => {
-        // Simulate pressing the first button
+
+        // Updates bid price for refreshing search
         updateMinBidPrice(index);
+
+        // Presses button to search
         pressButtonByClassName('call-to-action');
+
+        // Waits and checks if we got results
         setTimeout(() => {
             const parentDiv = document.querySelector('div.paginated-item-list.ut-pinned-list');
-            const liElement = parentDiv.querySelector('li.listFUTItem.has-auction-data.selected')
-            console.log("JENS HER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            console.log(parentDiv)
-            console.log(liElement)
+            const liElement = parentDiv.querySelector('li.listFUTItem.has-auction-data.selected');
 
+            // Checks if elements exists (Check if we got a result)
             if (liElement) {
                 const buyButton = document.querySelector('button.btn-standard.buyButton.currency-coins');
                 console.log(buyButton)
+
+                // Check if we can afford card
                 if (buyButton && !buyButton.disabled) {
-                    console.log("The button is not disabled XD.");
+
+                    // Presses the buy button
                     pressButton(buyButton);
+
+                    // Wait for confirm dialog to pop up
                     setTimeout(() => {
                         const confirmDiv = document.querySelector('div.ea-dialog-view--body');
                         const pElement = confirmDiv.querySelector('p.ea-dialog-view--msg');
                         const string = pElement.textContent;
                         const value = extractValue(string);
+
+                        // Wait by some random reason I have forgotten to press
                         setTimeout(() => {
                             const buttons = confirmDiv.querySelectorAll('div.ut-button-group button');
                             const confirmButton = buttons[0];
+
+                            // Press the button
                             pressButton(confirmButton);
+
+                            // Wait to see if we actually bought or failed to buy player
                             setTimeout(() => {
                                 const boughtLi = document.querySelector('li.listFUTItem.has-auction-data.selected.won')
                                 console.log(boughtLi)
@@ -151,12 +173,21 @@ const search = (milliseconds, index) => {
                                     chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value }, (response) => {
                                         console.log("Response from popup:", response);
                                     });
+
+                                    if (checked) {
+                                        listCard(minList, maxList);
+                                        chrome.runtime.sendMessage({ action: 'listed', name: currentPlayer, minList: minList, maxList: maxList }, (response) => {
+                                            console.log("Response from popup:", response);
+                                        });
+                                    }
+
                                 } else {
                                     chrome.runtime.sendMessage({ action: 'failed', name: currentPlayer, price: value }, (response) => {
                                         console.log("Response from popup:", response);
                                     });
                                 }
 
+                                // Wait to press the go-pack button
                                 setTimeout(() => {
                                     // Simulate finding the h1 element with text "Search Results"
                                     const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
@@ -179,7 +210,6 @@ const search = (milliseconds, index) => {
                                     }, milliseconds);
                                     console.log("1")
                                 }, 300); // After waiting 100 milliseconds, wait another 300 to see the go-back button
-
                             }, 500)
                         }, 50)
                     }, 50)
@@ -230,7 +260,7 @@ const search = (milliseconds, index) => {
                     console.log("1")
                 }, 300); // After waiting 100 milliseconds, wait another 300 to see the go-back button
             }
-        }, 80) // Wait 80 milliseconds in order to see result
+        }, 100) // Wait 100 milliseconds to see search results
     });
 }
 
@@ -301,7 +331,6 @@ async function performNextSearchStep(milliseconds) {
     console.log("Waited for 1000ms after clicking the button.");
 }
 
-
 const convertRpmToMilliseconds = (rpm) => {
     return (60/rpm) * 1000;
 }
@@ -311,13 +340,14 @@ const extractValue = (string) => {
     return match[0]
 }
 
+
 const updateMinBidPrice = (index) => {
     if (index % 10 === 0) {
         const priceInputs = document.getElementsByClassName('ut-number-input-control');
         // Make sure you're targeting the right input
         if (priceInputs[0]) {
             const minBidPrice = priceInputs[0];
-            minBidPrice.value = 150;
+            minBidPrice.value = 150
             const inputEvent = new Event('input', { bubbles: true });
             const changeEvent = new Event('change', { bubbles: true });
             minBidPrice.dispatchEvent(inputEvent); // Trigger input event
@@ -331,6 +361,23 @@ const updateMinBidPrice = (index) => {
             pressButton(incrementButton);
         }
     }
+}
+
+const listCard = (minList, maxList) => {
+    const listDiv = document.querySelector('div.ut-quick-list-panel-view');
+    const listInputs = listDiv.querySelectorAll('input.ut-number-input-control.filled');
+    const minListInput = listInputs[0];
+    const maxListInput = listInputs[1];
+    const listButton = listDiv.querySelector('button.btn-standard.call-to-action');
+    const inputEvent = new Event('input', { bubbles: true });
+    const changeEvent = new Event('change', { bubbles: true });
+    minListInput.value = minList;
+    minListInput.dispatchEvent(inputEvent);
+    minListInput.dispatchEvent(changeEvent);
+    maxListInput.value = maxList;
+    maxListInput.dispatchEvent(inputEvent);
+    maxListInput.dispatchEvent(changeEvent);
+    pressButton(listButton);
 }
 
 const getListOfNames = () => {

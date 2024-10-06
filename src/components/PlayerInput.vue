@@ -193,6 +193,7 @@ label {
 
 .search-container {
   position: relative; /* Important: Ensures suggestions list is positioned correctly */
+  justify-self: center;
   justify-content: center;
   align-items: center;
   width: 80%;

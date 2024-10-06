@@ -20,6 +20,7 @@ const onCheckedChange = (event) => {
 
 <style scoped>
 .auto-list-container {
+  justify-self: center;
   display: flex;
   align-items: center; /* Align label and checkbox vertically */
   height: 24px;

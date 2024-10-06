@@ -9,18 +9,28 @@ import SnipingResults from "./components/SnipingResults.vue";
 import CustomLog from "./components/CustomLog.vue";
 
 const running = ref(false);
+const advancedSettings = ref(false);
 const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
+
 const rpm = ref(60);
 const autoListChecked = ref(false);
 const searches = ref(0);
 const buys = ref(0);
 const fails = ref(0);
 const logList = ref([]);
+
+console.log("Current URL:", window.location.href); // Full URL of the current page
+console.log("Current Pathname:", window.location.pathname); // Pathname (after the domain)
+
+
+const sniperHeadShotAudio = new Audio('../assets/SniperHeadShot.MP3')
+const sniperMissAudio = new Audio('../assets/SniperMiss.MP3')
+
 
 const onPlayerInputChange = async (newValue) => {
   playerName.value = newValue
@@ -62,8 +72,20 @@ const onPlayerSelected = async (newValue) => {
   }
 }
 
+const onAdvancedSettingsPressed = () => {
+  advancedSettings.value = !advancedSettings.value;
+}
+
 const onCheckedChanged = (newValue) => {
   autoListChecked.value = newValue
+}
+
+const onMinListPriceChange = (newValue) => {
+  minListPrice.value = newValue;
+}
+
+const onMaxListPriceChange = (newValue) => {
+  maxListPrice.value = newValue;
 }
 
 const onSliderValueChange = (newValue) => {
@@ -77,7 +99,14 @@ const startSearch = async () => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'startSearch', value: searchLimit.value, rpm: rpm.value });
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'startSearch',
+      value: searchLimit.value,
+      rpm: rpm.value,
+      checked: autoListChecked.value,
+      minList: minListPrice.value,
+      maxList: maxListPrice.value
+    });
     logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
   } else {
     console.log("No actiive tab found. ")
@@ -91,7 +120,6 @@ const stopSearch = async () => {
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, { action: 'stopSearch' });
-    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
   } else {
     console.log("No actiive tab found. ")
   }
@@ -133,6 +161,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.action === 'finishedSearch') {
     running.value = false
+    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
+    sendResponse({ success: true, message: 'successful'})
+  }
+
+  else if (request.action === 'reachedSearchLimit') {
+    running.value = false
+    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by search limit ${searchLimit.value}`);
     sendResponse({ success: true, message: 'successful'})
   }
 
@@ -144,20 +179,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   else if (request.action === 'bought') {
     buys.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
+    sniperHeadShotAudio.play();
     sendResponse({ success: true, message: 'successful'})
+  }
+
+  else if (request.action === 'listed') {
+    logList.value.push(`[${new Date().toLocaleString()}] Listed ${request.name} for min ${request.minList} and max ${request.maxList} coins`);
   }
 
   else if (request.action === 'failed') {
     fails.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
+    sniperMissAudio.play();
     sendResponse({ success: true, message: 'successful'})
   }
 });
+
+const test1 = () =>{
+  sniperHeadShotAudio.play();
+}
+
+const test2 = () =>{
+  sniperMissAudio.play();
+}
 
 const deleteThisFunction = () =>{
   logList.value.push("Hello there");
   console.log(logList.value)
 }
+
 
 </script>
 
@@ -181,6 +231,8 @@ const deleteThisFunction = () =>{
                        label="Search Limit"
                        v-model="searchLimit"
                        :disabled="running"
+                       :max="15000000"
+                       :min="0"
                        @inputChangeEvent="onSearchLimitChange"
                        placeholder="No limit"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
@@ -188,7 +240,8 @@ const deleteThisFunction = () =>{
                        label="Max Buy Now"
                        v-model="maxBuyNow"
                        :disabled="running"
-                       max="15000000"
+                       :max="15000000"
+                       :min="0"
                        @inputChangeEvent="onMaxBuyNowChange"
                        placeholder="Max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
@@ -198,17 +251,27 @@ const deleteThisFunction = () =>{
           <CustomInput input-id="min-list-price-input"
                        label="Min list price"
                        :disabled="running"
-                       max="15000000"
+                       v-model="minListPrice"
+                       @inputChangeEvent="onMinListPriceChange"
+                       :max="15000000"
+                       :min="0"
                        placeholder="Min list price">
           </CustomInput>
           <CustomInput input-id="max-list-price-input"
                        label="Max list price"
-                       v-model="maxBuyNow"
                        :disabled="running"
-                       max="15000000"
+                       v-model="maxListPrice"
+                       @inputChangeEvent="onMaxListPriceChange"
+                       :max="15000000"
+                       :min="0"
                        placeholder="Max list price"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
+        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
+        <div v-if="advancedSettings" class="advanced-settings-container">
+
+        </div>
+
         <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
       </div>
       <div class="button-container">
@@ -232,6 +295,8 @@ const deleteThisFunction = () =>{
         <a href="https://github.com/jenscaa" target="_blank">jenscaa</a>
       </label>
       <!--
+      <button @click="test1">Test sound1</button>
+      <button @click="test2">Test sound2</button>
       <button @click="deleteThisFunction">Press me</button>
       <button @click="logAllElements">Log All</button>
       <button @click="startSearch">Start</button>
@@ -262,10 +327,24 @@ const deleteThisFunction = () =>{
 }
 
 .input-container {
-  display: flex; /* Ensure items are laid out in a row or column */
-  flex-direction: column; /* Stack elements vertically */
-  gap: 15px; /* Increase gap between input components */
+  display: grid;
+  grid-template-rows: auto;
+  gap: 15px;
   align-items: center;
+}
+
+.advanced-settings-label {
+  justify-self: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.advanced-settings-container {
+
 }
 
 .custom-button-container {
