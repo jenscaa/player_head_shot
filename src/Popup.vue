@@ -100,20 +100,22 @@ const onMinListPriceChange = (newValue) => {
 
 const onMaxListPriceChange = (newValue) => {
   maxListPrice.value = newValue;
-  if (maxBuyNow.value && maxListPrice.value) {
-    const profitParagraph =  profitRef.value
-    const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-    if (profit > 0) {
-      profitParagraph.style.setProperty('color', 'green');
-      console.log(1)
-    } else if (profit < 0) {
-      profitParagraph.style.setProperty('color', 'red');
-      console.log(2)
-    } else {
-      profitParagraph.style.setProperty('color', 'white');
-      console.log(3)
+  setTimeout(() => {
+    if (maxBuyNow.value && maxListPrice.value) {
+      const profitParagraph =  profitRef.value
+      const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+      if (profit > 0) {
+        profitParagraph.style.setProperty('color', 'green');
+        console.log(1)
+      } else if (profit < 0) {
+        profitParagraph.style.setProperty('color', 'red');
+        console.log(2)
+      } else {
+        profitParagraph.style.setProperty('color', 'white');
+        console.log(3)
+      }
     }
-  }
+  }, 50)
 }
 
 const onSliderValueChange = (newValue) => {
