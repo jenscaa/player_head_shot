@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import {ref} from 'vue';
 import CustomInput from "./components/CustomInput.vue";
 import CustomButton from "./components/CustomButton.vue";
 import CustomSlider from "./components/CustomSlider.vue";
@@ -16,6 +16,7 @@ const searchLimit = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
+const profitRef = ref();
 const searchResultDelay = ref();
 const confirmDialogDelay = ref();
 const confirmPurchaseDelay = ref();
@@ -40,7 +41,7 @@ const onPlayerInputChange = async (newValue) => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'inputChange', value: playerName.value });
+    chrome.tabs.sendMessage(tab.id, {action: 'inputChange', value: playerName.value});
   } else {
     console.log("No active tab found. ")
   }
@@ -56,9 +57,20 @@ const onMaxBuyNowChange = async (newValue) => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'maxBuyNowChange', value: maxBuyNow.value });
+    chrome.tabs.sendMessage(tab.id, {action: 'maxBuyNowChange', value: maxBuyNow.value});
   } else {
     console.log("No active tab found. ")
+  }
+  if (maxBuyNow.value && maxListPrice.value) {
+    const profitParagraph =  profitRef.value
+    const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+    if (profit > 0) {
+      profitParagraph.style.setProperty('color', 'green');
+    } else if (profit < 0) {
+      profitParagraph.style.setProperty('color', 'red');
+    } else {
+      profitParagraph.style.setProperty('color', 'white');
+    }
   }
 }
 
@@ -68,7 +80,7 @@ const onPlayerSelected = async (newValue) => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'playerSelected', value: playerName.value });
+    chrome.tabs.sendMessage(tab.id, {action: 'playerSelected', value: playerName.value});
   } else {
     console.log("No active tab found. ")
   }
@@ -88,6 +100,20 @@ const onMinListPriceChange = (newValue) => {
 
 const onMaxListPriceChange = (newValue) => {
   maxListPrice.value = newValue;
+  if (maxBuyNow.value && maxListPrice.value) {
+    const profitParagraph =  profitRef.value
+    const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+    if (profit > 0) {
+      profitParagraph.style.setProperty('color', 'green');
+      console.log(1)
+    } else if (profit < 0) {
+      profitParagraph.style.setProperty('color', 'red');
+      console.log(2)
+    } else {
+      profitParagraph.style.setProperty('color', 'white');
+      console.log(3)
+    }
+  }
 }
 
 const onSliderValueChange = (newValue) => {
@@ -105,6 +131,12 @@ const onConfirmDialogDelayChange = (newValue) => {
 const onCheckPurchaseDelayChange = (newValue) => {
   confirmPurchaseDelay.value = newValue;
 }
+
+const eaAfterTax = (buyPrice, listPrice) => {
+  const profit = listPrice * 0.95 - buyPrice;
+  return Math.round(profit);
+};
+
 
 const startSearch = async () => {
   running.value = true;
@@ -136,7 +168,7 @@ const stopSearch = async () => {
     active: true, currentWindow: true
   });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'stopSearch' });
+    chrome.tabs.sendMessage(tab.id, {action: 'stopSearch'});
   } else {
     console.log("No actiive tab found. ")
   }
@@ -156,42 +188,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     nameList.value.forEach(item => {
       console.log(item.name, item.rating)
     });
-    sendResponse({ success: true, message: 'successful'})
-  }
-
-  else if (request.action === 'finishedSearch') {
+    sendResponse({success: true, message: 'successful'})
+  } else if (request.action === 'finishedSearch') {
     running.value = false
     logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
-    sendResponse({ success: true, message: 'successful'})
-  }
-
-  else if (request.action === 'reachedSearchLimit') {
+    sendResponse({success: true, message: 'successful'})
+  } else if (request.action === 'reachedSearchLimit') {
     running.value = false
     logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by search limit ${searchLimit.value}`);
-    sendResponse({ success: true, message: 'successful'})
-  }
-
-  else if (request.action === 'searched') {
+    sendResponse({success: true, message: 'successful'})
+  } else if (request.action === 'searched') {
     searches.value++;
-    sendResponse({ success: true, message: 'successful'})
-  }
-
-  else if (request.action === 'bought') {
+    sendResponse({success: true, message: 'successful'})
+  } else if (request.action === 'bought') {
     buys.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
     sniperHeadShotAudio.play();
-    sendResponse({ success: true, message: 'successful'})
-  }
-
-  else if (request.action === 'listed') {
+    sendResponse({success: true, message: 'successful'})
+  } else if (request.action === 'listed') {
     logList.value.push(`[${new Date().toLocaleString()}] Listed ${request.name} for min ${request.minList} and max ${request.maxList} coins`);
-  }
-
-  else if (request.action === 'failed') {
+  } else if (request.action === 'failed') {
     fails.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
     sniperMissAudio.play();
-    sendResponse({ success: true, message: 'successful'})
+    sendResponse({success: true, message: 'successful'})
   }
 });
 
@@ -253,10 +273,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                        placeholder="Max list price">
           </CustomInput>
         </div>
-        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
+        <label v-if="maxBuyNow && maxListPrice" class="net-label">
+          Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
+        </label>
+        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{
+            "Advanced settings \u2699"
+          }}</label>
         <div v-if="advancedSettings" class="advanced-settings-container">
           <div class="advanced-label-container">
-            <label class="advanced-label description">If you are experiencing that the bot fails to purchase some times, or gets stuck, try to increase these delay metrics: </label>
+            <label class="advanced-label description">If you are experiencing that the bot fails to purchase some times,
+              or gets stuck, try to increase these delay metrics: </label>
           </div>
           <div class="advanced">
             <CustomInput input-id="wait-search-results-input"
@@ -354,6 +380,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   font-weight: bold;
   padding: 5px;
   cursor: pointer;
+  transition: transform 150ms ease-in-out;
+}
+
+.advanced-settings-label:hover {
+  transform: scale(1.05);
 }
 
 .advanced-label-container {
@@ -375,6 +406,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   align-self: center;
   font-weight: bold;
   text-align: start;
+}
+
+.net-label {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.profit-p {
+  color: white;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  width: fit-content;
+  height: fit-content;
 }
 
 .custom-button-container {

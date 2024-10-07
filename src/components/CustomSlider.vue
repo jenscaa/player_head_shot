@@ -49,8 +49,7 @@ const onInputChange = (event) => {
              max="120"
              class="slider"
              ref="sliderRef"
-             @input="onInputChange"
-      >
+             @input="onInputChange">
 
       <!-- Right Button to increase the number -->
       <button @click="increaseNumber" class="glider-button">+</button>
@@ -98,7 +97,6 @@ const onInputChange = (event) => {
   border-radius: 5px; /* Rounded track */
 }
 
-
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -118,6 +116,10 @@ const onInputChange = (event) => {
   -webkit-appearance: none;
   transform: scale(1.20);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.slider:focus::-webkit-slider-thumb {
+  outline: 1px solid #FFFFFF;
 }
 
 p {

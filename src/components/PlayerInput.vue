@@ -177,10 +177,10 @@ label {
 .input-container::before {
   content: '';
   position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 10px; /* Same border radius as input */
   padding: 3px; /* Matches the border width */
   background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient border */
