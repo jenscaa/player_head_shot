@@ -19,6 +19,11 @@ const onCheckedChange = (event) => {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
+
 .auto-list-container {
   justify-self: center;
   display: flex;
@@ -57,7 +62,7 @@ const onCheckedChange = (event) => {
   font-size: 14px;
   text-align: center;
   line-height: 20px;
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);; /* Same color when checked */
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));; /* Same color when checked */
   cursor: pointer;
 }
 

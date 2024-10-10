@@ -1,3 +1,8 @@
+:root {
+    --primary-color: #EF4765;
+    --secondary-color: #FF9A5A;
+}
+
 body {
     min-width: 350px;
     margin: 0;
@@ -11,15 +16,13 @@ body {
     width: 12px;
 }
 
-/* Scrollbar thumb (the draggable part) */
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Set the gradient color */
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color)); /* Default value */
     border-radius: 10px;
     cursor: default;
 }
 
-/* Scrollbar track background */
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.9); /* Light background for the track */
+    background: rgba(0, 0, 0, 0.9); /* Default value */
     cursor: default;
 }

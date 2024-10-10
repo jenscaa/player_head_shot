@@ -120,6 +120,10 @@ const onInputEvent = (event) => {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
 
 label {
   color: white;
@@ -183,7 +187,7 @@ label {
   bottom: 0;
   border-radius: 10px; /* Same border radius as input */
   padding: 3px; /* Matches the border width */
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient border */
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
   z-index: 0; /* Ensures the gradient border is behind the input */
 }
 
@@ -203,7 +207,7 @@ label {
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #ff9a5a;
+  border: 1px solid var(--secondary-color);
   border-radius: 5px;
   max-height: 200px;
   overflow-y: auto;
@@ -220,7 +224,7 @@ label {
 }
 
 .suggestions-list li.highlighted {
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
   color: white;
 }
 </style>

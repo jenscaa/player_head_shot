@@ -22,12 +22,16 @@ const props = defineProps({
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
 
 .btn {
   justify-self: center;
   width: 150px;
   height: 40px;
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
   border-radius: 20px;
   border: none;
   padding: 10px;

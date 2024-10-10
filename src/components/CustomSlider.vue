@@ -58,6 +58,11 @@ const onInputChange = (event) => {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
+
 .slider-container {
   display: grid;
   grid-template-rows: auto;
@@ -93,7 +98,7 @@ const onInputChange = (event) => {
 .slider::-webkit-slider-runnable-track {
   width: 100%;
   height: 10px;
-  background: linear-gradient(to right, #EF4765 0%, #FF9A5A calc(var(--slider-value) / 120 * 100%), #ffffff calc(var(--slider-value) / 120 * 100%)); /* Adjusted gradient */
+  background: linear-gradient(to right, var(--primary-color) 0%, var(--secondary-color) calc(var(--slider-value) / 120 * 100%), #ffffff calc(var(--slider-value) / 120 * 100%)); /* Adjusted gradient */
   border-radius: 5px; /* Rounded track */
 }
 
@@ -102,7 +107,7 @@ const onInputChange = (event) => {
   appearance: none;
   width: 20px;
   height: 20px;
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient color matching buttons */
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color)); /* Gradient color matching buttons */
   border-radius: 50%; /* Round thumb */
   cursor: pointer;
   border: none;
@@ -138,7 +143,7 @@ p {
   align-items: center; /* Vertically center the content */
   width: 30px; /* Adjusted width to match height */
   height: 30px; /* Ensure the height and width are the same */
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
   border-radius: 50%; /* Make it a perfect circle */
   border: none;
   padding: 0; /* Remove padding */

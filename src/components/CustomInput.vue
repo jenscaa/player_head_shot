@@ -61,6 +61,10 @@ const onInputEvent = (event) => {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
 
 label {
   color: white;
@@ -131,7 +135,9 @@ input[type="number"]::-webkit-outer-spin-button {
   bottom: 0;
   border-radius: 10px; /* Same border radius as input */
   padding: 3px; /* Matches the border width */
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A); /* Gradient border */
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color)); /* Default value */
+  /* Gradient border */
+  /*ALT  background: linear-gradient(to bottom right, #3bff72, #81eee0); */
 }
 
 .input-container .custom-input:focus {

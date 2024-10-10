@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import CustomInput from "./components/CustomInput.vue";
 import CustomButton from "./components/CustomButton.vue";
 import CustomSlider from "./components/CustomSlider.vue";
@@ -7,6 +7,7 @@ import PlayerInput from "./components/PlayerInput.vue";
 import AutoListCheckBox from "./components/AutoListCheckBox.vue";
 import SnipingResults from "./components/SnipingResults.vue";
 import CustomLog from "./components/CustomLog.vue";
+import ThemeColorButton from "./components/ThemeColorButton.vue";
 
 const running = ref(false);
 const advancedSettings = ref(false);
@@ -16,7 +17,6 @@ const searchLimit = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
-const profitRef = ref();
 const searchResultDelay = ref();
 const confirmDialogDelay = ref();
 const confirmPurchaseDelay = ref();
@@ -26,6 +26,9 @@ const searches = ref(0);
 const buys = ref(0);
 const fails = ref(0);
 const logList = ref([]);
+
+const extensionRef = ref();
+const profitRef = ref();
 
 console.log("Current URL:", window.location.href); // Full URL of the current page
 console.log("Current Pathname:", window.location.pathname); // Pathname (after the domain)
@@ -105,10 +108,10 @@ const onMaxListPriceChange = (newValue) => {
       const profitParagraph =  profitRef.value
       const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
       if (profit > 0) {
-        profitParagraph.style.setProperty('color', 'green');
+        profitParagraph.style.setProperty('color', 'chartreuse');
         console.log(1)
       } else if (profit < 0) {
-        profitParagraph.style.setProperty('color', 'red');
+        profitParagraph.style.setProperty('color', '#ef4765');
         console.log(2)
       } else {
         profitParagraph.style.setProperty('color', 'white');
@@ -175,6 +178,15 @@ const stopSearch = async () => {
     console.log("No actiive tab found. ")
   }
 }
+/*ALT  background: linear-gradient(to bottom right, #3bff72, #81eee0); */
+const changeThemeColors = (primaryColor, secondaryColor) => {
+  document.documentElement.style.setProperty('--primary-color', primaryColor);
+  document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+};
+
+onMounted(() => {
+  changeThemeColors('#e875d1', '#004aff');
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'updateNames') {
@@ -278,10 +290,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         <label v-if="maxBuyNow && maxListPrice" class="net-label">
           Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
         </label>
-        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{
-            "Advanced settings \u2699"
-          }}</label>
+        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
         <div v-if="advancedSettings" class="advanced-settings-container">
+          <h2>Delay</h2>
+          <hr>
           <div class="advanced-label-container">
             <label class="advanced-label description">If you are experiencing that the bot fails to purchase some times,
               or gets stuck, try to increase these delay metrics: </label>
@@ -319,8 +331,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             ></CustomInput>
             <label class="advanced-label">Delay time for purchase confirmation (milliseconds)</label>
           </div>
+          <h2>Theme Color</h2>
+          <hr>
+          <div class="theme-color-container">
+            <ThemeColorButton primary-color="#EF4765" secondary-color="#FF9A5A" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#3bff72" secondary-color="#81eee0" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#1628e5" secondary-color="#30ffe2" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#e875d1" secondary-color="#004aff" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#f82b2b" secondary-color="#d338f6" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#ffc01e" secondary-color="#f59393" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#8f3bcb" secondary-color="#42d73e" @themeColorChange="changeThemeColors"/>
+            <ThemeColorButton primary-color="#e00f3e" secondary-color="#efeb3a" @themeColorChange="changeThemeColors"/>
+          </div>
         </div>
-
         <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
       </div>
       <div class="button-container">
@@ -347,6 +370,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
 
 .title {
   text-align: center;
@@ -410,6 +437,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   text-align: start;
 }
 
+.advanced-settings-container h2 {
+  margin: 0;
+  padding-top: 5px;
+  padding-left: 10%;
+  color: white;
+}
+
+.advanced-settings-container hr {
+  justify-self: center;
+  margin: 0;
+  padding: 0;
+  width: 80%;
+}
+
+.theme-color-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 5px;
+  padding: 0 10%;
+}
+
 .net-label {
   color: white;
   font-weight: bold;
@@ -448,6 +496,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 }
 
 .credit-label a {
-  color: #ef8765;
+  color: var(--secondary-color);
 }
 </style>

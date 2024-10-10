@@ -21,14 +21,18 @@ const props = defineProps({
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #EF4765;
+  --secondary-color: #FF9A5A;
+}
 
 li {
-  border-bottom: 1px solid #FF9A5A;
+  border-bottom: 1px solid var(--secondary-color);
 }
 
 li:hover {
   color: white;
-  background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
 }
 
 .li-container {
