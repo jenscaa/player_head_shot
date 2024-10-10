@@ -29,6 +29,7 @@ const logList = ref([]);
 
 const extensionRef = ref();
 const profitRef = ref();
+const sliderKey = ref(0);
 
 console.log("Current URL:", window.location.href); // Full URL of the current page
 console.log("Current Pathname:", window.location.pathname); // Pathname (after the domain)
@@ -40,6 +41,7 @@ const sniperMissAudio = new Audio('../assets/SniperMiss.MP3')
 
 const onPlayerInputChange = async (newValue) => {
   playerName.value = newValue
+  chrome.storage.local.set({ name: newValue }, function () {});
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
@@ -52,10 +54,12 @@ const onPlayerInputChange = async (newValue) => {
 
 const onSearchLimitChange = (newValue) => {
   searchLimit.value = newValue
+  chrome.storage.local.set({ searchLimit: newValue }, function () {});
 }
 
 const onMaxBuyNowChange = async (newValue) => {
   maxBuyNow.value = newValue
+  chrome.storage.local.set({ maxBuyNow: newValue }, function () {});
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
@@ -68,9 +72,9 @@ const onMaxBuyNowChange = async (newValue) => {
     const profitParagraph =  profitRef.value
     const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
     if (profit > 0) {
-      profitParagraph.style.setProperty('color', 'green');
+      profitParagraph.style.setProperty('color', 'chartreuse');
     } else if (profit < 0) {
-      profitParagraph.style.setProperty('color', 'red');
+      profitParagraph.style.setProperty('color', '#ef4765');
     } else {
       profitParagraph.style.setProperty('color', 'white');
     }
@@ -79,6 +83,7 @@ const onMaxBuyNowChange = async (newValue) => {
 
 const onPlayerSelected = async (newValue) => {
   playerName.value = newValue
+  chrome.storage.local.set({ name: newValue }, function () {});
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
@@ -95,34 +100,58 @@ const onAdvancedSettingsPressed = () => {
 
 const onCheckedChanged = (newValue) => {
   autoListChecked.value = newValue
+  chrome.storage.local.set({ autoListChecked: newValue }, function () {});
 }
 
 const onMinListPriceChange = (newValue) => {
   minListPrice.value = newValue;
+  chrome.storage.local.set({ minListPrice: newValue }, function () {});
 }
 
 const onMaxListPriceChange = (newValue) => {
   maxListPrice.value = newValue;
+  chrome.storage.local.set({ maxListPrice: newValue }, function () {});
   setTimeout(() => {
     if (maxBuyNow.value && maxListPrice.value) {
       const profitParagraph =  profitRef.value
       const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
       if (profit > 0) {
         profitParagraph.style.setProperty('color', 'chartreuse');
-        console.log(1)
       } else if (profit < 0) {
         profitParagraph.style.setProperty('color', '#ef4765');
-        console.log(2)
       } else {
         profitParagraph.style.setProperty('color', 'white');
-        console.log(3)
       }
     }
   }, 50)
 }
 
+const onClearAllClicked = async () => {
+  playerName.value = null;
+  searchLimit.value = null;
+  maxBuyNow.value = null;
+  autoListChecked.value = false;
+  minListPrice.value = null;
+  maxListPrice.value = null;
+  rpm.value = 60;
+  sliderKey.value++;
+
+  await chrome.storage.local.set({
+    name: null,
+    searchLimit: null,
+    maxBuyNow: null,
+    autoListChecked: false,
+    minListPrice: null,
+    maxListPrice: null,
+    rpm: 60
+  }, function () {
+    console.log('All values have been saved to local storage.');
+  });
+}
+
 const onSliderValueChange = (newValue) => {
   rpm.value = newValue;
+  chrome.storage.local.set({ rpm: newValue }, function () {});
 }
 
 const onSearchResultDelayChange = (newValue) => {
@@ -178,14 +207,43 @@ const stopSearch = async () => {
     console.log("No actiive tab found. ")
   }
 }
+
 /*ALT  background: linear-gradient(to bottom right, #3bff72, #81eee0); */
 const changeThemeColors = (primaryColor, secondaryColor) => {
   document.documentElement.style.setProperty('--primary-color', primaryColor);
   document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+  const colorTheme = { primaryColor: primaryColor, secondaryColor: secondaryColor }
+  chrome.storage.local.set({ theme: colorTheme }, function () {
+    console.log('Data is saved to local storage.');
+  });
 };
 
 onMounted(() => {
-  changeThemeColors('#e875d1', '#004aff');
+  // Retrieve the 'myData' object from chrome storage
+  chrome.storage.local.get(['theme'], function(result) {
+    if (result.theme) {
+      const { primaryColor, secondaryColor } = result.theme;
+      // Apply the theme colors to CSS variables
+      document.documentElement.style.setProperty('--primary-color', primaryColor);
+      document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+
+      console.log('Theme loaded and applied:', primaryColor, secondaryColor);
+    } else {
+      console.log('No theme found in storage.');
+    }
+  });
+
+  chrome.storage.local.get(['name', 'searchLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
+    // Default values if the keys do not exist in storage
+    playerName.value = result.name || undefined;  // Default name
+    searchLimit.value = result.searchLimit || undefined;  // Default search limit
+    maxBuyNow.value = result.maxBuyNow || undefined;  // Default max buy now price
+    autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;  // Default autoListChecked (boolean)
+    minListPrice.value = result.minListPrice || undefined;  // Default minimum list price
+    maxListPrice.value = result.maxListPrice || undefined;  // Default maximum list price
+    rpm.value = result.rpm || 60;  // Default RPM value
+    sliderKey.value++;
+  });
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -266,7 +324,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                        placeholder="Max buy now"> <!-- Dont use max if you dont want to get banned -->
           </CustomInput>
         </div>
-        <AutoListCheckBox @checkChangedEvent="onCheckedChanged"></AutoListCheckBox>
+        <AutoListCheckBox @checkChangedEvent="onCheckedChanged" :checked="autoListChecked"></AutoListCheckBox>
         <div v-if="autoListChecked" class="custom-button-container">
           <CustomInput input-id="min-list-price-input"
                        label="Min list price"
@@ -290,6 +348,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         <label v-if="maxBuyNow && maxListPrice" class="net-label">
           Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
         </label>
+        <CustomButton button-id="clear-all"
+                      class="clear-all-button"
+                      text="Clear All"
+                      :disabled="running"
+                      @click="onClearAllClicked"
+        ></CustomButton>
         <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
         <div v-if="advancedSettings" class="advanced-settings-container">
           <h2>Delay</h2>
@@ -344,7 +408,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             <ThemeColorButton primary-color="#e00f3e" secondary-color="#efeb3a" @themeColorChange="changeThemeColors"/>
           </div>
         </div>
-        <CustomSlider @sliderValueChange="onSliderValueChange"></CustomSlider>
+        <CustomSlider :key="sliderKey" @sliderValueChange="onSliderValueChange" :rpm="rpm"></CustomSlider>
       </div>
       <div class="button-container">
         <CustomButton button-id="stop-button"
@@ -484,6 +548,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 .button-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+.clear-all-button {
+  margin: 0;
+  padding: 0;
+  width: 30%;
+  height: 32px;
 }
 
 .credit-label {

@@ -1,11 +1,16 @@
 <script setup>
-import { ref } from 'vue'
-
+import {onMounted, ref} from 'vue'
 const emit = defineEmits(['sliderValueChange'])
+const props = defineProps({
+  rpm: {
+    type: Number,
+    required: true
+  }
+})
 
 // Define a reactive value for the slider
 const sliderRef = ref(null);
-const sliderValue = ref(60)
+const sliderValue = ref(props.rpm)
 
 const increaseNumber = () => {
   sliderValue.value = (sliderValue.value % 120) + 1
@@ -28,10 +33,15 @@ const onInputChange = (event) => {
   slider.style.setProperty('--slider-value', newValue);
   emit('sliderValueChange', sliderValue.value);
 }
+
+onMounted(() => {
+  const slider = sliderRef.value;
+  slider.style.setProperty('--slider-value', sliderValue.value);
+})
 </script>
 
 <template>
-  <div class="slider-container">
+  <div :key="sliderKey" class="slider-container">
 
     <div class="label-container">
       <!-- Display the current slider value -->
@@ -93,6 +103,7 @@ const onInputChange = (event) => {
   background: transparent; /* Ensure the main input background is transparent */
   outline: none;
   transition: background 0.3s ease;
+  cursor: pointer;
 }
 
 .slider::-webkit-slider-runnable-track {

@@ -1,5 +1,11 @@
 <script setup>
 const emit = defineEmits(['checkChangedEvent'])
+const props = defineProps({
+  checked: {
+    type: Boolean,
+    required: true
+  }
+})
 const onCheckedChange = (event) => {
   const newValue = event.target.checked;
   emit('checkChangedEvent', newValue);
@@ -12,7 +18,7 @@ const onCheckedChange = (event) => {
   <div class="auto-list-container">
     <label class="label">List after buy</label>
     <div>
-      <input id="checkbox" type="checkbox" class="custom-checkbox" @change="onCheckedChange">
+      <input id="checkbox" type="checkbox" class="custom-checkbox" :checked="checked" @change="onCheckedChange">
       <label class="checkbox-label" for="checkbox"></label>
     </div>
   </div>

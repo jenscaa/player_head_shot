@@ -18,7 +18,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Unlimited loop if request.value is undefined
         if (request.searchLimit === undefined || request.searchLimit === '') {
             function loop() {
-                if (!running) return;  // Exit the loop if running is set to false
+                if (!running) {
+                    chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
+                        console.log("Response from popup:", response);
+                    });
+                    return;
+                }  // Exit the loop if running is set to false
                 promiseChain = promiseChain.then(() => {
                     console.log(`Starting search iteration`);
                     return search2(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
