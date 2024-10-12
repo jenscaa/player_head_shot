@@ -1,47 +1,99 @@
+/**
+ * @author jenscaa
+ * @version 1.1
+ *
+ * Content script for the SniperHeadShot Chrome extension that manages the search process and interacts with the UI elements
+ * the EA web application. This script handles various actions like starting and stopping searches, selecting players,
+ * changing input values. It communicates with other the other part of the Chrome extension through
+ * messages and manages asynchronous tasks using promises.
+ */
+
+// Global variables
+/**
+ * @type {boolean} running - Flag to control whether the search process is currently running.
+ * @type {string} currentPlayer - Stores the name of the current player being searched.
+ * @type {number} rpm - The rate per minute (RPM) that controls the speed of search iterations.
+ * @type {number} searchResultDelayWait - Delay in milliseconds for registration of search results.
+ * @type {number} confirmDialogDelayWait - Delay in milliseconds for registration of confirm dialog.
+ * @type {number} confirmPurchaseDelayWait - Delay in milliseconds for registration confirm purchase actions.
+ */
 let running = false;
 let currentPlayer = '';
+let rpm = 60
 let searchResultDelayWait = 150
 let confirmDialogDelayWait = 50
 let confirmPurchaseDelayWait = 500
 
+// Event listener for Chrome runtime messages
+/**
+ * Listens for messages sent from the other part of the Chrome extension (the popup)
+ * and performs actions accordingly. Supported actions include starting/stopping searches, selecting players,
+ * changing input values, and adjusting delays.
+ *
+ * @param {Object} request - The message request object containing action details and optional parameters.
+ * @param {Object} sender - The sender of the message, automatically passed by Chrome runtime.
+ * @param {Function} sendResponse - A callback function to send a response back to the sender.
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+    /**
+     * Handles the 'startSearch' action which initiates the search process with specified parameters.
+     * It sets the 'running' flag to true and continuously runs the search based on user-specified limits
+     * or indefinitely if no limit is provided.
+     */
     if (request.action === 'startSearch') {
+
         running = true;
-        const eafcPlayerInput = document.querySelector('input.ut-text-input-control');
-        currentPlayer = eafcPlayerInput.value
+        console.log("Running: ", running);
+
+        // Sets the current player to search on
+        const SearchPlayerInput = document.querySelector('input.ut-text-input-control');
+        currentPlayer = SearchPlayerInput.value
+
+        // Sets delay variables
+        rpm = request.rpm || 60
         searchResultDelayWait = request.searchResultDelay || 150;
         confirmDialogDelayWait = request.confirmDialogDelay || 50;
         confirmPurchaseDelayWait = request.confirmPurchaseDelay || 500;
 
         let i = 0;
-        let promiseChain = Promise.resolve();  // Start with a resolved promise
-        // Unlimited loop if request.value is undefined
+        let promiseChain = Promise.resolve();  // Start with a resolved promise for chaining async tasks
+
+        // Loop indefinitely if no search limit is provided
         if (request.searchLimit === undefined || request.searchLimit === '') {
             function loop() {
+
                 if (!running) {
+                    // Notify that the search has finished
                     chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
                         console.log("Response from popup:", response);
                     });
-                    return;
-                }  // Exit the loop if running is set to false
+                    return; // Exit the loop if running is set to false
+                }
+
+                // Chain search operations with promises
                 promiseChain = promiseChain.then(() => {
-                    console.log(`Starting search iteration`);
-                    return search2(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
+                    console.log("Starting search iteration");
+                    return search(convertRpmToMilliseconds(rpm), i, request.checked, request.minList, request.maxList);
                 }).then(() => {
                     i++
-                    loop();
-                });  // Chain the next iteration
+                    loop(); // Chain the next iteration (Continue the loop)
+                });
             }
             loop();  // Start the loop
-        } else {
-            console.log("REACHED HERE MAN-----------------------------------------------------------");
 
+        // Run the search loop until the search limit is reached
+        } else {
             function loop() {
+
                 if (!running) {
+                    // Notify that the search has finished
                     chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
                         console.log("Response from popup:", response);
                     });
                     return;
+
+                    // Notify that the search has finished by search limit
                 } else if (i >= request.searchLimit) {
                     chrome.runtime.sendMessage({ action: 'reachedSearchLimit' }, (response) => {
                         console.log("Response from popup:", response);
@@ -49,78 +101,131 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     return;
                 }
                 promiseChain = promiseChain.then(() => {
-                    console.log(`Starting search iteration`);
-                    return search2(convertRpmToMilliseconds(request.rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
+                    console.log("Starting search iteration");
+                    return search(convertRpmToMilliseconds(rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
                 }).then(() => {
                     i++;
-                    loop();  // Chain the next iteration
+                    loop();  // Chain the next iteration (Continue the loop)
                 });
             }
             loop();  // Start the loop
         }
     }
 
+    /**
+     * Handles the 'stopSearch' action which stops the ongoing search process by setting the 'running' flag to false.
+     */
     else if (request.action === 'stopSearch') {
         running = false;
         console.log("Running: ", running);
     }
 
+    /**
+     * Handles the 'playerSelected' action which selects a player by simulating an input change event and triggers a button click.
+     */
     else if (request.action === 'playerSelected') {
-        const eafcPlayerInput = document.querySelector('input.ut-text-input-control');
-        eafcPlayerInput.value = request.value
-        var inputEvent = new Event('input', { bubbles: true });
-        eafcPlayerInput.dispatchEvent(inputEvent);
+
+        // Retrieves the search player search element on the EA web app
+        const SearchPlayerInput = document.querySelector('input.ut-text-input-control');
+        SearchPlayerInput.value = request.value
+
+        // Simulate an input event for the EA Web to registration the new value
+        const inputEvent = new Event('input', { bubbles: true });
+        SearchPlayerInput.dispatchEvent(inputEvent);
+
+        // Waits 1.5 seconds (1500 milliseconds) in order to register the incoming list of players
         setTimeout(() => {
-            const eafcPlayerResults = document.getElementsByClassName('ut-button-group playerResultsList');
-            const children = eafcPlayerResults[0]?.children;
+
+            // Retrieves the all the elements representing the listed players, and simulate pressing the first player element
+            const SearchPlayerResults = document.getElementsByClassName('ut-button-group playerResultsList');
+            const children = SearchPlayerResults[0]?.children;
             const button = children[0];
             pressButton(button);
-        }, 1500) // Wait 1500 milliseconds for delay
+        }, 1500) // Wait 1500 milliseconds for web app to display list
     }
 
+    /**
+     * Handles the 'inputChange' action which simulates a change in input and sends a list of updated player names back to the popup.
+     */
     else if (request.action === 'inputChange') {
-        const eafcPlayerInput = document.querySelector('input.ut-text-input-control');
-        eafcPlayerInput.value = request.value
-        var inputEvent = new Event('input', { bubbles: true });
-        eafcPlayerInput.dispatchEvent(inputEvent);
+
+        // Retrieves the search player search element on the EA web app.
+        const SearchPlayerInput = document.querySelector('input.ut-text-input-control');
+        SearchPlayerInput.value = request.value
+
+        // Simulate an input event for the EA Web to registration the new value
+        const inputEvent = new Event('input', { bubbles: true });
+        SearchPlayerInput.dispatchEvent(inputEvent);
+
+        // Waits 1 second (1 millisecond) in order to register the incoming list of players and send it to the popup
         setTimeout(() => {
             const list = getListOfNames()
             chrome.runtime.sendMessage({ action: 'updateNames', list: list }, (response) => {
                 console.log("Response from popup:", response);
             });
-        }, 1000);
+        }, 1000); // Wait 1000 milliseconds for web app to display list
     }
 
+    /**
+     * Handles the 'maxBuyNowChange' action which simulates a change in the Max Buy Now input.
+     */
     else if (request.action === 'maxBuyNowChange') {
+
+        // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
         const priceInputs = document.getElementsByClassName('ut-number-input-control');
-        console.log("Price Inputs Found:", priceInputs);
-        console.log("Length of priceInputs:", priceInputs.length);
 
-        // Make sure you're targeting the right input
+        // We are interested in the 4th element - Max Buy Now input
         if (priceInputs[3]) {
-            const maxBuyNowInput = priceInputs[3];
 
-            // Log the value you are trying to set
-            console.log("Setting value:", request.value);
+            // Retrieve the Max Buy Now input
+            const maxBuyNowInput = priceInputs[3];
 
             // Set the value of the input
             maxBuyNowInput.value = request.value;
 
-            // Log the element to see its current state
-            console.log("Updated input element:", maxBuyNowInput);
-
-            // Trigger input and change events
-            var inputEvent = new Event('input', { bubbles: true });
-            var changeEvent = new Event('change', { bubbles: true });
-
+            // Trigger input and change events for the web app to register input change
+            const inputEvent = new Event('input', { bubbles: true });
+            const changeEvent = new Event('change', { bubbles: true });
             maxBuyNowInput.dispatchEvent(inputEvent); // Trigger input event
             maxBuyNowInput.dispatchEvent(changeEvent); // Trigger change event as fallback
         } else {
-            console.log("Input element at index [3] not found");
+            console.error("Input element at index [3] not found");
         }
     }
 
+    /**
+     * Handles the 'rpmChange' action which sets the rpm variable to a new value.
+     * This is done in order to tweak search speed while searching.
+     */
+    else if (request.action === 'rpmChange') {
+        rpm = request.value;
+    }
 
+    /**
+     * Handles the 'searchResultDelay' action which sets the searchResultDelayWait variable to a new value.
+     */
+    else if (request.action === 'searchResultDelay') {
+        searchResultDelayWait = request.value;
+    }
+
+    /**
+     * Handles the 'confirmDialogDelay' action which sets the confirmPurchaseDelayWait variable to a new value.
+     */
+    else if (request.action === 'confirmDialogDelay') {
+        confirmPurchaseDelayWait = request.value;
+    }
+
+    /**
+     * Handles the 'confirmPurchaseDelay' action which sets the confirmPurchaseDelayWait variable to a new value.
+     */
+    else if (request.action === 'confirmPurchaseDelay') {
+        confirmPurchaseDelayWait = request.value;
+    }
+
+    // Honestly, I don't know why I haven't deleted this one
+    /**
+     * Handles the 'logElements' action which logs all the elements it finds on the EA web page.
+     */
     else if (request.action === 'logElements') {
         // Query all elements on the page
         const allElements = document.querySelectorAll('*');
@@ -135,61 +240,97 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Utility function to simulate waiting (use in place of setTimeout)
+/**
+ * Utility function that returns a promise to simulate a delay or waiting period.
+ * This is done to make code more 'readable'.
+ *
+ * @param {number} ms - The number of milliseconds to wait.
+ * @returns {Promise<void>} - A promise that resolves after the specified delay.
+ */
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function search2(milliseconds, index, checked, minList, maxList) {
-    // Updates bid price for refreshing search
+/**
+ * Performs a search actions on the web interface, handling search results and attempting to purchase items.
+ *
+ * @param {number} milliseconds - The delay between search attempts.
+ * @param {number} index - The current index in the search loop.
+ * @param {boolean} checked - Whether to list the card if it is bought.
+ * @param {number} minList - The minimum listing price when selling.
+ * @param {number} maxList - The maximum listing price when selling.
+ * @returns {Promise<void>} - A promise that resolves after the search is completed.
+ */
+async function search(milliseconds, index, checked, minList, maxList) {
+
+    // Updates min bid price input for refreshing search results
     updateMinBidPrice(index);
 
-    // Press the initial search button
+    // Simulates pressing the search button
     pressButtonByClassName('call-to-action');
 
-    // Wait for results to show
+    // Wait for search results to appear
     await wait(searchResultDelayWait);
 
+    // Retrieving the 'first' search result from the current search (If there are any results)
     const parentDiv = document.querySelector('div.paginated-item-list.ut-pinned-list');
     const liElement = parentDiv?.querySelector('li.listFUTItem.has-auction-data.selected');
 
+    // If there exists a result, then press it
     if (liElement) {
-        const buyButton = document.querySelector('button.btn-standard.buyButton.currency-coins');
-        console.log(buyButton);
 
+        // Retrieves the buy player button
+        const buyButton = document.querySelector('button.btn-standard.buyButton.currency-coins');
+
+        // Check if the button is not disabled (This means that you can afford the player)
         if (buyButton && !buyButton.disabled) {
+
             // Perform the buy action
             await handlePurchase(buyButton, checked, minList, maxList);
         } else {
-            console.log("The buy button is disabled.");
+            console.log('The buy button is disabled - Can not afford card.');
         }
-    } else {
-        console.log("No search results found.");
     }
 
-    // Proceed to the next step of the search after action
+    // Navigating back to the search results screen
     await performNextSearchStep(milliseconds);
 }
 
+/**
+ * Handles the purchase of an item, confirms the purchase, and optionally lists the card for sale.
+ *
+ * @param {HTMLButtonElement} buyButton - The buy button element to trigger the purchase.
+ * @param {boolean} checked - Whether to list the card if it is bought.
+ * @param {number} minList - The minimum listing price when selling.
+ * @param {number} maxList - The maximum listing price when selling.
+ * @returns {Promise<void>} - A promise that resolves after the purchase process is completed.
+ */
 async function handlePurchase(buyButton, checked, minList, maxList) {
     // Press buy button
     pressButton(buyButton);
-    await wait(confirmDialogDelayWait); // Wait for the confirm dialog to appear
 
+    // Wait for the confirm dialog to appear
+    await wait(confirmDialogDelayWait);
+
+    // Retrieving elements and extracting price value
     const confirmDiv = document.querySelector('div.ea-dialog-view--body');
     const pElement = confirmDiv.querySelector('p.ea-dialog-view--msg');
     const string = pElement?.textContent || '';
     const value = extractValue(string);
 
-    // Confirm the purchase
+    // Retrieving the confirm button and press it
     const confirmButton = confirmDiv.querySelector('div.ut-button-group button');
     pressButton(confirmButton);
 
-    await wait(confirmPurchaseDelayWait); // Wait to see if the player was actually bought
+    // Wait to see if the player was actually bought
+    await wait(confirmPurchaseDelayWait);
 
+    // Retrieve the element displaying only if player was bought
     const boughtLi = document.querySelector('li.listFUTItem.has-auction-data.selected.won');
+
+    // Check if the player was bought
     if (boughtLi) {
         chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value });
 
-        // List the card if `checked` is true
+        // List the card for sale if 'checked' is true.
         if (checked) {
             await listCard(minList, maxList);
             chrome.runtime.sendMessage({ action: 'listed', name: currentPlayer, minList, maxList });
@@ -199,43 +340,67 @@ async function handlePurchase(buyButton, checked, minList, maxList) {
     }
 }
 
+/**
+ * Performs the next step in the search process, navigating back to the search input screen.
+ *
+ * @param {number} milliseconds - The delay before continuing the search.
+ * @returns {Promise<void>} - A promise that resolves after the next step is completed.
+ */
 async function performNextSearchStep(milliseconds) {
-    await wait(300); // Must wait in order to avoid getting stuck
-    // Find the "Search Results" element and its associated button
+    // Must wait for EA web app to display go-back button (In other words: avoid getting stuck)
+    await wait(300);
+
+    // Retrieve the 'go back to search input screen'-button
     const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
     const button = h1Element?.closest('div.ut-navigation-bar-view.navbar-style-landscape.currency-purchase')
         ?.querySelector('button.ut-navigation-button-control');
 
-
-
-    // Press the button to return to the search results
+    // Press the button to return to the search input screen
     if (button) {
         pressButton(button);
-        console.log("Button clicked to go back to search results.");
     }
 
+    // Send message back to popup to confirm search. This is used for counting searches
     chrome.runtime.sendMessage({ action: 'searched' });
 
     // Wait for the specified milliseconds before resolving the search promise
     await wait(milliseconds);
-    console.log(`Waited for ${milliseconds}ms before proceeding.`);
 }
 
-
+/**
+ * Converts rate per minute (RPM) into milliseconds for timing the search process.
+ *
+ * @param {number} rpm - The number of rounds per minute.
+ * @returns {number} - The equivalent number of milliseconds per round.
+ */
 const convertRpmToMilliseconds = (rpm) => {
     return (60/rpm) * 1000;
 }
 
+/**
+ * Extracts a numerical value from a string.
+ *
+ * @param {string} string - The string containing the numerical value.
+ * @returns {string} - The extracted value as a string.
+ */
 const extractValue = (string) => {
     const match = string.match(/(\d{1,3}(,\d{3})*)/);
     return match[0]
 }
 
-
+/**
+ * Updates the minimum bid price in the search interface. This either sets a default value or
+ * increments the value periodically based on the search index.
+ *
+ * @param {number} index - The current search iteration index.
+ */
 const updateMinBidPrice = (index) => {
+
+    // Check if index is dividable on 10.
     if (index % 10 === 0) {
+
+        // Retrieve the Min Bid Price input and simulate inserting 150 into it
         const priceInputs = document.getElementsByClassName('ut-number-input-control');
-        // Make sure you're targeting the right input
         if (priceInputs[0]) {
             const minBidPrice = priceInputs[0];
             minBidPrice.value = 150
@@ -245,8 +410,9 @@ const updateMinBidPrice = (index) => {
             minBidPrice.dispatchEvent(changeEvent); // Trigger change event as fallback
         }
     } else {
-        const incrementButtons = document.getElementsByClassName('btn-standard increment-value');
 
+        // Retrieve the increase Min Bid Price button and simulate clicking it
+        const incrementButtons = document.getElementsByClassName('btn-standard increment-value');
         if (incrementButtons[0]) {
             const incrementButton = incrementButtons[0];
             pressButton(incrementButton);
@@ -254,7 +420,15 @@ const updateMinBidPrice = (index) => {
     }
 }
 
+/**
+ * Lists a card for sale by updating the min and max listing price fields and submitting the form.
+ *
+ * @param {number} minList - The minimum listing price.
+ * @param {number} maxList - The maximum listing price.
+ */
 const listCard = (minList, maxList) => {
+
+    // Retrieving the Min List- and Max List inputs and simulate value insertions on them.
     const listDiv = document.querySelector('div.ut-quick-list-panel-view');
     const listInputs = listDiv.querySelectorAll('input.ut-number-input-control.filled');
     const minListInput = listInputs[0];
@@ -268,14 +442,21 @@ const listCard = (minList, maxList) => {
     maxListInput.value = maxList;
     maxListInput.dispatchEvent(inputEvent);
     maxListInput.dispatchEvent(changeEvent);
+
+    // Simulates pressing the list button.
     pressButton(listButton);
 }
 
+/**
+ * Retrieves the list of player names and ratings from the search results.
+ *
+ * @returns {Array<Object>} - An array of player objects with name and rating properties.
+ */
 const getListOfNames = () => {
     const list = [];
-    const eafcPlayerResults = document.getElementsByClassName('ut-button-group playerResultsList');
-    if (eafcPlayerResults) {
-        const children = eafcPlayerResults[0]?.children;
+    const SearchPlayerResults = document.getElementsByClassName('ut-button-group playerResultsList');
+    if (SearchPlayerResults) {
+        const children = SearchPlayerResults[0]?.children;
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
             const name = child.querySelector('.btn-text');
@@ -289,34 +470,33 @@ const getListOfNames = () => {
     return list;
 }
 
-const pressSearchButton = (timeout) => {
-    setTimeout(() => {
-        pressButtonByClassName('call-to-action');
-        setTimeout(() => {
-            pressButtonByClassName('ut-navigation-button-control'); // Click the button after 1 seconds
-            console.log("Button clicked:");
-        }, timeout); // 1000 milliseconds = 5 seconds
-    }, 500)
-
-}
-
+/**
+ * Simulates pressing a button by its class name.
+ *
+ * @param {string} className - The class name of the button to press.
+ */
 const pressButtonByClassName = (className) => {
     const searchButton = document.getElementsByClassName(className);
     if (searchButton.length > 0) {
         const button = searchButton[0];
         pressButton(button)
     } else {
-        console.log("No buttons found with the specified class.");
+        console.error("No buttons found with the specified class.");
     }
 }
 
+/**
+ * Simulates a button click by dispatching mousedown and mouseup events.
+ *
+ * @param {HTMLElement} button
+ */
 const pressButton = (button) => {
-    // Click the first button in the collection
+
+    // Create and dispatch mousedown event
     const mouseDownEvent = new MouseEvent('mousedown', {bubbles: true, cancelable: true});
     button.dispatchEvent(mouseDownEvent);
+
     // Create and dispatch mouseup event
     const mouseUpEvent = new MouseEvent('mouseup', {bubbles: true, cancelable: true});
     button.dispatchEvent(mouseUpEvent);
-    console.log("Button clicked!");
-    console.log(button); // Log the button element
 }

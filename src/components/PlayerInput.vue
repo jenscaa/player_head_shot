@@ -1,7 +1,28 @@
 <script setup>
-import { ref, computed } from 'vue';
+/**
+ * Imports `ref` and from Vue to manage reactive data and properties.
+ */
+import { ref } from 'vue';
 import CustomLi from "./CustomLi.vue";
+
+/**
+ * Defines emitted events:
+ * - `inputChangeEvent`: Triggered when the input field value changes.
+ * - `selectedPlayerEvent`: Triggered when a player is selected from the suggestions.
+ */
 const emit = defineEmits(['inputChangeEvent', 'selectedPlayerEvent']);
+
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {string} label - The label text for the input field. Defaults to an empty string if not provided.
+ * @prop {string} placeholder - The placeholder text for the input field. Defaults to an empty string.
+ * @prop {string} inputId - A unique identifier for the input field. This prop is required.
+ * @prop {*} modelValue - The current value of the input field, used for two-way binding.
+ * @prop {boolean} [required=false] - A flag indicating whether the input is required. Defaults to `false`.
+ * @prop {boolean} disabled - A flag indicating whether the input field is disabled. This prop is required.
+ * @prop {Array<Object>} playerList - A list of players used to populate the suggestions. Defaults to an empty array.
+ */
 const props = defineProps({
   label: {
     type: String,
@@ -31,12 +52,26 @@ const props = defineProps({
 
 });
 
-// State for search query, highlighted index, and showSuggestions flag
-const highlightedIndex = ref(-1); // No suggestion highlighted initially
-const showSuggestions = ref(false); // Initially, the suggestions list is hidden
+/**
+ * A reactive reference for the index of the currently highlighted suggestion during keyboard navigation.
+ * Initially set to -1 (no suggestion highlighted).
+ *
+ * @type {Ref<number>}
+ */
+const highlightedIndex = ref(-1);
 
+/**
+ * A reactive reference controlling the visibility of the suggestions list.
+ * Initially set to `false` (suggestions list is hidden).
+ *
+ * @type {Ref<boolean>}
+ */
+const showSuggestions = ref(false);
 
-// Handle keyboard navigation (Arrow Down)
+/**
+ * Handles navigation through the suggestion list using the down arrow key.
+ * Moves the highlight to the next suggestion, looping back to the first if at the end.
+ */
 const onArrowDown = () => {
   if (highlightedIndex.value < props.playerList.length - 1) {
     highlightedIndex.value++;
@@ -45,7 +80,10 @@ const onArrowDown = () => {
   }
 };
 
-// Handle keyboard navigation (Arrow Up)
+/**
+ * Handles navigation through the suggestion list using the up arrow key.
+ * Moves the highlight to the previous suggestion, looping back to the last if at the beginning.
+ */
 const onArrowUp = () => {
   if (highlightedIndex.value > 0) {
     highlightedIndex.value--;
@@ -54,7 +92,10 @@ const onArrowUp = () => {
   }
 };
 
-// Select suggestion when Enter key is pressed
+/**
+ * Handles the selection of a suggestion when the Enter key is pressed.
+ * If a suggestion is highlighted, it is selected. If not, the current input value is used.
+ */
 const onEnter = () => {
   if (highlightedIndex.value >= 0) {
     selectSuggestion(props.playerList[highlightedIndex.value].name);
@@ -63,22 +104,35 @@ const onEnter = () => {
   }
 };
 
-// Select suggestion (can be triggered by mouse click or Enter key)
+/**
+ * Handles the selection of a suggestion. This can be triggered by a mouse click or pressing Enter.
+ * The selected suggestion is emitted through the 'selectedPlayerEvent', and the suggestions list is hidden.
+ *
+ * @param {string} suggestion - The name of the selected player.
+ */
 const selectSuggestion = (suggestion) => {
   console.log("Suggestion ", suggestion);
   emit('selectedPlayerEvent', suggestion)
   hideSuggestions(); // Hide the suggestions list after selection
 };
 
-// Hide suggestions
+/**
+ * Hides the suggestions list by setting `showSuggestions` to `false`.
+ */
 const hideSuggestions = () => {
   showSuggestions.value = false; // Hide the suggestions list
 };
 
+/**
+ * Handles the input change event. When the user types, the highlighted suggestion is reset,
+ * the suggestions list is shown, and the new input value is emitted via 'inputChangeEvent'.
+ *
+ * @param {Event} event - The input event triggered by typing in the input field.
+ */
 const onInputEvent = (event) => {
   highlightedIndex.value = -1; // Reset highlighted index when typing
   showSuggestions.value = true; // Show the suggestions list
-  emit('inputChangeEvent', event.target.value)
+  emit('inputChangeEvent', event.target.value); // Emit the new input value
 }
 </script>
 
@@ -138,44 +192,44 @@ label {
 }
 
 .input-container {
-  position: relative; /* Allows the pseudo-element to be positioned relative to the input */
+  position: relative;
   display: inline-block;
-  width: 100%; /* This makes the input expand to the parent's full width */
+  width: 100%;
 }
 
 .input-container .player-input {
   position: relative;
-  z-index: 1; /* Ensures the input element is above the gradient border */
-  border-radius: 10px; /* Adjust this if you want a different radius */
-  border: 4px solid transparent; /* Transparent border */
+  z-index: 1;
+  border-radius: 10px;
+  border: 4px solid transparent;
   background: rgba(255, 255, 255, 0.9);
   padding: 10px;
   font-size: 14px;
   color: black;
-  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
-  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
-  width: 100%; /* This makes the input expand to the parent's full width */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  width: 100%;
   transition: background-color 150ms ease-in-out;
 }
 
 .input-container .player-input:hover {
   position: relative;
-  border-radius: 10px; /* Adjust this if you want a different radius */
-  border: 4px solid transparent; /* Transparent border */
+  border-radius: 10px;
+  border: 4px solid transparent;
   background: rgba(255, 255, 255, 1);
   padding: 10px;
   font-size: 14px;
   color: black;
-  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
-  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
-  width: 100%; /* This makes the input expand to the parent's full width */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .input-container .player-input:disabled {
-  opacity: 0.7; /* Make the button semi-transparent */
-  cursor: not-allowed; /* Show a "not-allowed" cursor */
-  box-shadow: none; /* Remove the hover box-shadow effect */
-  transform: none; /* Prevent hover scaling */
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .input-container::before {
@@ -185,18 +239,18 @@ label {
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 10px; /* Same border radius as input */
-  padding: 3px; /* Matches the border width */
+  border-radius: 10px;
+  padding: 3px;
   background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
-  z-index: 0; /* Ensures the gradient border is behind the input */
+  z-index: 0;
 }
 
 .input-container .player-input:focus {
-  outline: none; /* Optional: Remove default focus outline */
+  outline: none;
 }
 
 .search-container {
-  position: relative; /* Important: Ensures suggestions list is positioned correctly */
+  position: relative;
   justify-self: center;
   justify-content: center;
   align-items: center;
@@ -214,8 +268,8 @@ label {
   background-color: white;
   position: absolute;
   width: 100%;
-  z-index: 1000; /* Ensure this is above other elements */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for better visibility */
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .suggestions-list li {

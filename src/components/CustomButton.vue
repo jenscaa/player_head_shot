@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {string} text - The text to be displayed on the button. Defaults to an empty string if not provided.
+ * @prop {string} buttonId - A unique identifier for the button. This prop is required.
+ * @prop {boolean} [disabled=false] - A Boolean indicating whether the button is disabled. Defaults to `false` if not provided.
+ */
 const props = defineProps({
   text: {
     type: String,
@@ -49,9 +56,9 @@ const props = defineProps({
 }
 
 .btn:disabled {
-  opacity: 0.5; /* Make the button semi-transparent */
-  cursor: not-allowed; /* Show a "not-allowed" cursor */
-  box-shadow: none; /* Remove the hover box-shadow effect */
-  transform: none; /* Prevent hover scaling */
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 </style>

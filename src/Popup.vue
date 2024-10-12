@@ -1,5 +1,8 @@
 <script setup>
+/** Imports Vue's `onMounted` lifecycle hook and `ref` for reactive data. */
 import {onMounted, ref} from 'vue';
+
+/** Import custom components used in the template for UI elements. */
 import CustomInput from "./components/CustomInput.vue";
 import CustomButton from "./components/CustomButton.vue";
 import CustomSlider from "./components/CustomSlider.vue";
@@ -9,6 +12,27 @@ import SnipingResults from "./components/SnipingResults.vue";
 import CustomLog from "./components/CustomLog.vue";
 import ThemeColorButton from "./components/ThemeColorButton.vue";
 
+/**
+ * @type {boolean} running - Flag to control whether the bot is currently running.
+ * @type {boolean} advancedSettings - Flag to toggle the visibility of advanced settings.
+ * @type {string} playerName - The name of the current player being searched.
+ * @type {Array<Object>} nameList - List of player names and their ratings.
+ * @type {number|undefined} searchLimit - The maximum number of searches allowed.
+ * @type {number|undefined} maxBuyNow - The maximum 'Buy Now' price for purchasing.
+ * @type {number|undefined} minListPrice - The minimum listing price when selling players.
+ * @type {number|undefined} maxListPrice - The maximum listing price when selling players.
+ * @type {number|undefined} searchResultDelay - The delay in milliseconds for search results to appear.
+ * @type {number|undefined} confirmDialogDelay - The delay in milliseconds for confirming dialogs.
+ * @type {number|undefined} confirmPurchaseDelay - The delay in milliseconds before confirming purchases.
+ * @type {number} rpm - The number of rounds per minute for search iterations.
+ * @type {boolean} autoListChecked - Flag to determine if auto-listing is enabled.
+ * @type {number} searches - Counter for the number of search iterations.
+ * @type {number} buys - Counter for successful purchases.
+ * @type {number} fails - Counter for failed purchase attempts.
+ * @type {Array<string>} logList - List of log entries tracking actions and events.
+ * @type {number|undefined} profitRef - Reference to display calculated profit from sales.
+ * @type {number} sliderKey - Key used to track the state of the custom slider for RPM.
+ */
 const running = ref(false);
 const advancedSettings = ref(false);
 const playerName = ref('');
@@ -26,37 +50,50 @@ const searches = ref(0);
 const buys = ref(0);
 const fails = ref(0);
 const logList = ref([]);
-
-const extensionRef = ref();
 const profitRef = ref();
 const sliderKey = ref(0);
 
+// Log current URL and pathname in the console for debugging purposes
 console.log("Current URL:", window.location.href); // Full URL of the current page
 console.log("Current Pathname:", window.location.pathname); // Pathname (after the domain)
 
-
+// Audio elements for success and failure actions
 const sniperHeadShotAudio = new Audio('../assets/SniperHeadShot.MP3')
 const sniperMissAudio = new Audio('../assets/SniperMiss.MP3')
 
-
+/**
+ * Updates the player name and sends a message to the content script when the player input changes.
+ *
+ * @param {string} newValue - The new value of the player name.
+ */
 const onPlayerInputChange = async (newValue) => {
   playerName.value = newValue
-  chrome.storage.local.set({ name: newValue }, function () {});
+  await chrome.storage.local.set({ name: newValue }, function () {});
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, {action: 'inputChange', value: playerName.value});
   } else {
-    console.log("No active tab found. ")
+    console.error("No active tab found. ")
   }
 }
 
+/**
+ * Updates the search limit and stores the value in Chrome local storage.
+ *
+ * @param {number} newValue - The new search limit.
+ */
 const onSearchLimitChange = (newValue) => {
   searchLimit.value = newValue
   chrome.storage.local.set({ searchLimit: newValue }, function () {});
 }
 
+/**
+ * Updates the max buy now price, stores it, and sends the updated value to the content script.
+ *
+ * @param {number} newValue - The new max buy now price.
+ */
 const onMaxBuyNowChange = async (newValue) => {
   maxBuyNow.value = newValue
   chrome.storage.local.set({ maxBuyNow: newValue }, function () {});
@@ -66,48 +103,67 @@ const onMaxBuyNowChange = async (newValue) => {
   if (tab) {
     chrome.tabs.sendMessage(tab.id, {action: 'maxBuyNowChange', value: maxBuyNow.value});
   } else {
-    console.log("No active tab found. ")
+    console.error("No active tab found. ")
   }
+
+  // Updates the profit display based on the calculated profit
   if (maxBuyNow.value && maxListPrice.value) {
     const profitParagraph =  profitRef.value
     const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-    if (profit > 0) {
-      profitParagraph.style.setProperty('color', 'chartreuse');
-    } else if (profit < 0) {
-      profitParagraph.style.setProperty('color', '#ef4765');
-    } else {
-      profitParagraph.style.setProperty('color', 'white');
-    }
+    profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
   }
 }
 
+/**
+ * Handles player selection, updates the player name, and sends a message to the content script.
+ *
+ * @param {string} newValue - The new selected player name.
+ */
 const onPlayerSelected = async (newValue) => {
   playerName.value = newValue
-  chrome.storage.local.set({ name: newValue }, function () {});
+  await chrome.storage.local.set({ name: newValue }, function () {});
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
   if (tab) {
     chrome.tabs.sendMessage(tab.id, {action: 'playerSelected', value: playerName.value});
   } else {
-    console.log("No active tab found. ")
+    console.error("No active tab found. ")
   }
 }
 
+/**
+ * Toggles the visibility of advanced settings.
+ */
 const onAdvancedSettingsPressed = () => {
   advancedSettings.value = !advancedSettings.value;
 }
 
+/**
+ * Updates the auto-listing checkbox value and stores it in Chrome local storage.
+ *
+ * @param {boolean} newValue - The new value for the auto-list checkbox.
+ */
 const onCheckedChanged = (newValue) => {
   autoListChecked.value = newValue
   chrome.storage.local.set({ autoListChecked: newValue }, function () {});
 }
 
+/**
+ * Updates the minimum listing price and stores it in Chrome local storage.
+ *
+ * @param {number} newValue - The new minimum listing price.
+ */
 const onMinListPriceChange = (newValue) => {
   minListPrice.value = newValue;
   chrome.storage.local.set({ minListPrice: newValue }, function () {});
 }
 
+/**
+ * Updates the maximum listing price, recalculates profit, and updates the profit display.
+ *
+ * @param {number} newValue - The new maximum listing price.
+ */
 const onMaxListPriceChange = (newValue) => {
   maxListPrice.value = newValue;
   chrome.storage.local.set({ maxListPrice: newValue }, function () {});
@@ -115,17 +171,14 @@ const onMaxListPriceChange = (newValue) => {
     if (maxBuyNow.value && maxListPrice.value) {
       const profitParagraph =  profitRef.value
       const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-      if (profit > 0) {
-        profitParagraph.style.setProperty('color', 'chartreuse');
-      } else if (profit < 0) {
-        profitParagraph.style.setProperty('color', '#ef4765');
-      } else {
-        profitParagraph.style.setProperty('color', 'white');
-      }
+      profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
     }
   }, 50)
 }
 
+/**
+ * Clears all input fields and resets default values.
+ */
 const onClearAllClicked = async () => {
   playerName.value = null;
   searchLimit.value = null;
@@ -136,45 +189,106 @@ const onClearAllClicked = async () => {
   rpm.value = 60;
   sliderKey.value++;
 
+  // Resets chrome local storage
   await chrome.storage.local.set({
     name: null,
-    searchLimit: null,
+    searchLimit: '',
     maxBuyNow: null,
     autoListChecked: false,
     minListPrice: null,
     maxListPrice: null,
     rpm: 60
   }, function () {
-    console.log('All values have been saved to local storage.');
+    console.log('All values have been reset to local storage.');
   });
 }
 
-const onSliderValueChange = (newValue) => {
+/**
+ * Updates the RPM value and sends a message to the content script.
+ *
+ * @param {number} newValue - The new RPM value.
+ */
+const onSliderValueChange = async (newValue) => {
   rpm.value = newValue;
   chrome.storage.local.set({ rpm: newValue }, function () {});
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, {action: 'rpmChange', value: rpm.value});
+  } else {
+    console.error("No active tab found. ")
+  }
 }
 
-const onSearchResultDelayChange = (newValue) => {
+/**
+ * Updates the search result delay and sends a message to the content script.
+ *
+ * @param {number} newValue - The new search result delay in milliseconds.
+ */
+const onSearchResultDelayChange = async (newValue) => {
   searchResultDelay.value = newValue;
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, {action: 'searchResultDelay', value: searchResultDelay.value});
+  } else {
+    console.error("No active tab found. ")
+  }
 }
 
-const onConfirmDialogDelayChange = (newValue) => {
+/**
+ * Updates the confirm dialog delay and sends a message to the content script.
+ *
+ * @param {number} newValue - The new confirm dialog delay in milliseconds.
+ */
+const onConfirmDialogDelayChange = async (newValue) => {
   confirmDialogDelay.value = newValue;
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, {action: 'confirmDialogDelay', value: confirmDialogDelay.value});
+  } else {
+    console.error("No active tab found. ")
+  }
 }
 
-const onCheckPurchaseDelayChange = (newValue) => {
+/**
+ * Updates the confirm purchase delay and sends the updated value to the content script.
+ *
+ * @param {number} newValue - The new confirm purchase delay in milliseconds.
+ */
+const onCheckPurchaseDelayChange = async (newValue) => {
   confirmPurchaseDelay.value = newValue;
+  let [tab] = await chrome.tabs.query({
+    active: true, currentWindow: true
+  });
+  if (tab) {
+    chrome.tabs.sendMessage(tab.id, {action: 'confirmPurchaseDelay', value: confirmDialogDelay.value});
+  } else {
+    console.error("No active tab found. ")
+  }
 }
 
+/**
+ * Calculates profit after EA tax (5% deduction on sales).
+ *
+ * @param {number} buyPrice - The purchase price of the item.
+ * @param {number} listPrice - The selling price of the item.
+ * @returns {number} - The profit after the 5% EA tax is deducted.
+ */
 const eaAfterTax = (buyPrice, listPrice) => {
   const profit = listPrice * 0.95 - buyPrice;
   return Math.round(profit);
 };
 
-
+/**
+ * Starts the search process by sending a message to the content script.
+ */
 const startSearch = async () => {
   running.value = true;
-  console.log(searchLimit.value)
   let [tab] = await chrome.tabs.query({
     active: true, currentWindow: true
   });
@@ -192,10 +306,13 @@ const startSearch = async () => {
     });
     logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
   } else {
-    console.log("No actiive tab found. ")
+    console.error("No active tab found. ")
   }
 }
 
+/**
+ * Stops the search process by sending a 'stopSearch' message to the content script.
+ */
 const stopSearch = async () => {
   running.value = false;
   let [tab] = await chrome.tabs.query({
@@ -204,82 +321,134 @@ const stopSearch = async () => {
   if (tab) {
     chrome.tabs.sendMessage(tab.id, {action: 'stopSearch'});
   } else {
-    console.log("No actiive tab found. ")
+    console.error("No active tab found. ")
   }
 }
 
-/*ALT  background: linear-gradient(to bottom right, #3bff72, #81eee0); */
+/**
+ * Changes the theme colors by updating the CSS variables and saving the selected theme to Chrome storage.
+ *
+ * @param {string} primaryColor - The primary theme color.
+ * @param {string} secondaryColor - The secondary theme color.
+ */
 const changeThemeColors = (primaryColor, secondaryColor) => {
   document.documentElement.style.setProperty('--primary-color', primaryColor);
   document.documentElement.style.setProperty('--secondary-color', secondaryColor);
   const colorTheme = { primaryColor: primaryColor, secondaryColor: secondaryColor }
   chrome.storage.local.set({ theme: colorTheme }, function () {
-    console.log('Data is saved to local storage.');
+    console.log('Theme colors is saved to local storage.');
   });
 };
 
-onMounted(() => {
-  // Retrieve the 'myData' object from chrome storage
+/**
+ * Fetches theme and search-related settings from Chrome storage and applies them to the UI.
+ * This function is triggered when the component is mounted.
+ */
+onMounted(async () => {
+  // Retrieve the 'theme' object from Chrome storage
   chrome.storage.local.get(['theme'], function(result) {
     if (result.theme) {
       const { primaryColor, secondaryColor } = result.theme;
       // Apply the theme colors to CSS variables
       document.documentElement.style.setProperty('--primary-color', primaryColor);
       document.documentElement.style.setProperty('--secondary-color', secondaryColor);
-
       console.log('Theme loaded and applied:', primaryColor, secondaryColor);
     } else {
-      console.log('No theme found in storage.');
+      console.error('No theme found in storage.');
     }
   });
 
-  chrome.storage.local.get(['name', 'searchLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
-    // Default values if the keys do not exist in storage
-    playerName.value = result.name || undefined;  // Default name
-    searchLimit.value = result.searchLimit || undefined;  // Default search limit
-    maxBuyNow.value = result.maxBuyNow || undefined;  // Default max buy now price
-    autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;  // Default autoListChecked (boolean)
-    minListPrice.value = result.minListPrice || undefined;  // Default minimum list price
-    maxListPrice.value = result.maxListPrice || undefined;  // Default maximum list price
-    rpm.value = result.rpm || 60;  // Default RPM value
+  // Retrieve various settings from Chrome storage and insert them to the global variables
+  await chrome.storage.local.get(['name', 'searchLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
+    playerName.value = result.name || undefined;
+    if (result.name) onPlayerSelected(result.name);
+    searchLimit.value = result.searchLimit || undefined;
+    maxBuyNow.value = result.maxBuyNow || undefined;
+    onMaxBuyNowChange(result.maxBuyNow)
+    autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;
+    minListPrice.value = result.minListPrice || undefined;
+    maxListPrice.value = result.maxListPrice || undefined;
+    rpm.value = result.rpm || 60;
     sliderKey.value++;
   });
 });
 
+/**
+ * Listens for incoming messages from the content script and handles various actions.
+ *
+ * @param {Object} request - The message payload.
+ * @param {Object} sender - The message sender information.
+ * @param {Function} sendResponse - Callback to send a response to the sender.
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+  /**
+   * Handles the 'updateNames' action which updates the UI with the list of player names
+   * received from the content script.
+   */
   if (request.action === 'updateNames') {
-    console.log("Names received from content script:", request.list);
 
-    // You can update your popup UI here with the received names
-    nameList.value = request.list; // This will be the array of names
-
-    console.log(request.list);
-    console.log("____________________________________________________")
-    console.log(nameList.value)
-
-    nameList.value.forEach(item => {
-      console.log(item.name, item.rating)
-    });
+    // Sets the name list array from content script
+    nameList.value = request.list;
     sendResponse({success: true, message: 'successful'})
-  } else if (request.action === 'finishedSearch') {
+  }
+
+  /**
+   * Handles the 'finishedSearch' action which stops the search process by setting the 'running' flag to false
+   * and logs the event in the logList.
+   */
+  else if (request.action === 'finishedSearch') {
     running.value = false
     logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
     sendResponse({success: true, message: 'successful'})
-  } else if (request.action === 'reachedSearchLimit') {
+
+  }
+
+  /**
+   * Handles the 'reachedSearchLimit' action which stops the search process when the defined search limit is reached.
+   * It updates the 'running' flag to false and logs the event in the logList along with the search limit reached.
+   */
+  else if (request.action === 'reachedSearchLimit') {
     running.value = false
     logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by search limit ${searchLimit.value}`);
     sendResponse({success: true, message: 'successful'})
-  } else if (request.action === 'searched') {
+
+  }
+
+  /**
+   * Handles the 'searched' action which increments the 'searches' counter whenever a search iteration is completed.
+   */
+  else if (request.action === 'searched') {
     searches.value++;
     sendResponse({success: true, message: 'successful'})
-  } else if (request.action === 'bought') {
+
+  }
+
+  /**
+   * Handles the 'bought' action which increments the 'buys' counter when a player is successfully purchased,
+   * logs the purchase details in the logList, and plays the 'sniperHeadShotAudio' sound.
+   */
+  else if (request.action === 'bought') {
     buys.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
     sniperHeadShotAudio.play();
     sendResponse({success: true, message: 'successful'})
-  } else if (request.action === 'listed') {
+
+  }
+
+  /**
+   * Handles the 'listed' action which logs the details of the listed player (min/max price) in the logList.
+   */
+  else if (request.action === 'listed') {
     logList.value.push(`[${new Date().toLocaleString()}] Listed ${request.name} for min ${request.minList} and max ${request.maxList} coins`);
-  } else if (request.action === 'failed') {
+
+  }
+
+  /**
+   * Handles the 'failed' action which increments the 'fails' counter when an attempt to purchase a player fails,
+   * logs the failure details in the logList, and plays the 'sniperMissAudio' sound.
+   */
+  else if (request.action === 'failed') {
     fails.value++;
     logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
     sniperMissAudio.play();
@@ -312,7 +481,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                        :max="15000000"
                        :min="0"
                        @inputChangeEvent="onSearchLimitChange"
-                       placeholder="No limit"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="No limit">
           </CustomInput>
           <CustomInput input-id="max-buy-now-input"
                        label="Max Buy Now"
@@ -321,7 +490,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                        :max="15000000"
                        :min="0"
                        @inputChangeEvent="onMaxBuyNowChange"
-                       placeholder="Max buy now"> <!-- Dont use max if you dont want to get banned -->
+                       placeholder="Max buy now">
           </CustomInput>
         </div>
         <AutoListCheckBox @checkChangedEvent="onCheckedChanged" :checked="autoListChecked"></AutoListCheckBox>
@@ -489,7 +658,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 .advanced {
   justify-self: center;
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Changed from .5fr */
+  grid-template-columns: 1fr 1fr;
   justify-items: center;
   padding: 0 18px;
 }

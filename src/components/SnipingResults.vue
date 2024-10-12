@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * Defines the props that the component expects:
+ *
+ * @property {number} searches - The number of searches performed.
+ * @property {number} buys - The number of successful purchases.
+ * @property {number} fails - The number of failed purchase attempts.
+ */
 const props = defineProps({
   searches: {
     type: Number,

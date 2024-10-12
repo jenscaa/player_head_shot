@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {string} name - The name of the player. This prop is required.
+ * @prop {string} rating - The rating of the player. This prop is required.
+ */
 const props = defineProps({
   name: {
     type: String,
@@ -52,5 +58,4 @@ p {
 .rating {
   text-align: right;
 }
-
 </style>

@@ -1,17 +1,32 @@
 <script setup>
-const emit = defineEmits(['checkChangedEvent'])
+/**
+ * Defines the emitted event 'checkChangedEvent', which notifies the parent component
+ * when the checkbox state changes.
+ */
+const emit = defineEmits(['checkChangedEvent']);
+
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {boolean} checked - The current checked state of the checkbox.
+ */
 const props = defineProps({
   checked: {
     type: Boolean,
     required: true
   }
-})
+});
+
+/**
+ * Handles the checkbox state change event. When the checkbox is checked or unchecked,
+ * it emits the 'checkChangedEvent' to notify the parent component of the new state.
+ *
+ * @param {Event} event - The checkbox change event triggered by user interaction.
+ */
 const onCheckedChange = (event) => {
   const newValue = event.target.checked;
   emit('checkChangedEvent', newValue);
 }
-
-
 </script>
 
 <template>
@@ -33,7 +48,7 @@ const onCheckedChange = (event) => {
 .auto-list-container {
   justify-self: center;
   display: flex;
-  align-items: center; /* Align label and checkbox vertically */
+  align-items: center;
   height: 24px;
   gap: 7px;
 }
@@ -46,7 +61,7 @@ const onCheckedChange = (event) => {
 }
 
 .custom-checkbox {
-  display: none; /* Hide the original checkbox */
+  display: none;
   margin: 0;
 }
 
@@ -56,7 +71,7 @@ const onCheckedChange = (event) => {
   width: 20px;
   height: 20px;
   border-radius: 4px;
-  background-color: white; /* Apply the solid color */
+  background-color: white;
   box-shadow: inset 0 0 0 1px #000;
   transition: background-color 0.3s ease;
   cursor: pointer;
@@ -68,8 +83,7 @@ const onCheckedChange = (event) => {
   font-size: 14px;
   text-align: center;
   line-height: 20px;
-  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));; /* Same color when checked */
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
   cursor: pointer;
 }
-
 </style>

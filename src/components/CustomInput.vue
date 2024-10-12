@@ -1,5 +1,23 @@
 <script setup>
+/**
+ * Defines the emitted event 'inputChangeEvent', which is triggered when the input value changes
+ * to notify the parent component with the new input value.
+ */
 const emit = defineEmits(['inputChangeEvent']);
+
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {string} label - The label text for the input field. Defaults to an empty string if not provided.
+ * @prop {string} type - The type of the input field (e.g., "text", "number"). Defaults to "number".
+ * @prop {string} placeholder - The placeholder text for the input field. Defaults to an empty string if not provided.
+ * @prop {string} inputId - A unique identifier for the input field. This prop is required.
+ * @prop {number} [max] - The maximum allowable value for the input field. Optional.
+ * @prop {number} [min] - The minimum allowable value for the input field. Optional.
+ * @prop {*} modelValue - The current value of the input field, used for two-way binding.
+ * @prop {boolean} [required=false] - A Boolean indicating whether the input is required. Defaults to `false` if not provided.
+ * @prop {boolean} disabled - A Boolean indicating whether the input field is disabled. This prop is required.
+ */
 const props = defineProps({
   label: {
     type: String,
@@ -36,6 +54,12 @@ const props = defineProps({
   }
 });
 
+/**
+ * Handles the input event. When the input value changes, this function emits the 'inputChangeEvent'
+ * with the updated input value to notify the parent component.
+ *
+ * @param {Event} event - The input change event triggered by user interaction.
+ */
 const onInputEvent = (event) => {
   emit('inputChangeEvent', event.target.value)
 }
@@ -80,7 +104,7 @@ label {
 }
 
 .input-container {
-  position: relative; /* Allows the pseudo-element to be positioned relative to the input */
+  position: relative;
   display: inline-block;
   width: 100%;
 }
@@ -91,39 +115,38 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-
 .input-container .custom-input {
   position: relative;
-  border-radius: 10px; /* Adjust this if you want a different radius */
-  border: 4px solid transparent; /* Transparent border */
-  background: rgba(255, 255, 255, .9);; /* Background color of the input field */
+  border-radius: 10px;
+  border: 4px solid transparent;
+  background: rgba(255, 255, 255, .9);
   padding: 10px;
   font-size: 14px;
   color: black;
-  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
-  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
-  width: 100%; /* This makes the input expand to the parent's full width */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  width: 100%;
   transition: background-color 150ms ease-in-out;
 }
 
 .input-container .custom-input:hover {
   position: relative;
-  border-radius: 10px; /* Adjust this if you want a different radius */
-  border: 4px solid transparent; /* Transparent border */
+  border-radius: 10px;
+  border: 4px solid transparent;
   background: rgba(255, 255, 255, 1);
   padding: 10px;
   font-size: 14px;
   color: black;
-  background-clip: padding-box; /* Ensures that the background doesn't overlap the border */
-  box-sizing: border-box; /* Ensures padding and border are included in the element’s size */
-  width: 100%; /* This makes the input expand to the parent's full width */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .input-container .custom-input:disabled {
-  opacity: 0.7; /* Make the button semi-transparent */
-  cursor: not-allowed; /* Show a "not-allowed" cursor */
-  box-shadow: none; /* Remove the hover box-shadow effect */
-  transform: none; /* Prevent hover scaling */
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .input-container::before {
@@ -133,15 +156,12 @@ input[type="number"]::-webkit-outer-spin-button {
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 10px; /* Same border radius as input */
-  padding: 3px; /* Matches the border width */
-  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color)); /* Default value */
-  /* Gradient border */
-  /*ALT  background: linear-gradient(to bottom right, #3bff72, #81eee0); */
+  border-radius: 10px;
+  padding: 3px;
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
 }
 
 .input-container .custom-input:focus {
-  outline: none; /* Optional: Remove default focus outline */
+  outline: none;
 }
-
 </style>

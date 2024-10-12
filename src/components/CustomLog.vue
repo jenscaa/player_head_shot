@@ -1,16 +1,32 @@
 <script setup>
+/** Imports Vue's `ref` and `watch` functions for reactive properties and side effect handling.*/
 import {ref, watch} from "vue";
 
+/**
+ * Defines the props that the component expects:
+ *
+ * @prop {Array} logList - An array containing log messages. Defaults to an empty array if not provided.
+ */
 const props = defineProps({
   logList: {
     type: Array,
     default: () => []
   }
-})
+});
 
+/**
+ * A reactive reference for the textarea element that displays the logs.
+ *
+ * @type {Ref<null|HTMLElement>}
+ */
 const textAreaLog = ref(null);
 
-// Watch for changes in logList and auto-scroll to the bottom
+/**
+ * Watches for changes in the 'logList' prop. When the log list is updated,
+ * it automatically scrolls the 'textAreaLog' to the bottom to ensure the most recent log is visible.
+ *
+ * @watch logList - Deep watches the log list for changes.
+ */
 watch(() => props.logList, () => {
   if (textAreaLog.value) {
     // Update the scrollTop to ensure it scrolls to the bottom
@@ -18,7 +34,11 @@ watch(() => props.logList, () => {
   }
 }, { deep: true });
 
-// Function to generate the current date in the format DD.MM.YYYY
+/**
+ * Generates the current date in the format DD.MM.YYYY.
+ *
+ * @returns {string} - The formatted current date as a string.
+ */
 const getFormattedDate = () => {
   const now = new Date();
   const day = String(now.getDate()).padStart(2, '0');
@@ -27,26 +47,25 @@ const getFormattedDate = () => {
   return `${day}.${month}.${year}`;
 };
 
+/**
+ * Initiates the download of the 'logList' as a text file. The file is named based on the current date,
+ * and the content is the 'logList' array joined into a single string with new lines separating each entry.
+ *
+ * Steps:
+ * - Convert 'logList' into a string with each log entry on a new line.
+ * - Create a Blob from the log content, generate a download link, and programmatically click the link to trigger the download.
+ */
 const downloadLog = () => {
-  // Convert logList array to a string with each element on a new line
-  const logContent = props.logList.join("\n");
-  // Create a Blob object representing the data as a text file
-  const blob = new Blob([logContent], { type: "text/plain" });
-  // Generate the filename with the current date
-  const date = getFormattedDate();
-  const filename = `log_${date}.txt`;
-  // Create a temporary anchor element to download the file
-  const link = document.createElement("a");
-  // Create a URL for the Blob and set it as the href for the anchor element
-  link.href = URL.createObjectURL(blob);
-  // Set the download attribute with the dynamically generated filename
-  link.download = filename;
-  // Append the anchor to the document body (it's necessary to append before clicking in some browsers)
-  document.body.appendChild(link);
-  // Programmatically click the link to trigger the download
-  link.click();
-  // Remove the link after the download
-  document.body.removeChild(link);
+  const logContent = props.logList.join("\n");  // Convert logList array to a string
+  const blob = new Blob([logContent], { type: "text/plain" });  // Create a Blob object representing the data as a text file
+  const date = getFormattedDate();  // Get the current date
+  const filename = `log_${date}.txt`;  // Generate the filename with the current date
+  const link = document.createElement("a");  // Create a temporary anchor element to download the file
+  link.href = URL.createObjectURL(blob);  // Create a URL for the Blob and set it as the href for the anchor element
+  link.download = filename;  // Set the download attribute with the dynamically generated filename
+  document.body.appendChild(link);  // Append the anchor to the document body
+  link.click();  // Programmatically click the link to trigger the download
+  document.body.removeChild(link);  // Remove the link after the download
 };
 
 </script>
