@@ -147,6 +147,13 @@ const onAdvancedSettingsPressed = () => {
 const onCheckedChanged = (newValue) => {
   autoListChecked.value = newValue
   chrome.storage.local.set({ autoListChecked: newValue }, function () {});
+  setTimeout(() => {
+    if (maxBuyNow.value && maxListPrice.value) {
+      const profitParagraph =  profitRef.value
+      const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+      profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
+    }
+  }, 50)
 }
 
 /**
@@ -514,7 +521,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                        placeholder="Max list price">
           </CustomInput>
         </div>
-        <label v-if="maxBuyNow && maxListPrice" class="net-label">
+        <label v-if="autoListChecked && maxBuyNow && maxListPrice" class="net-label">
           Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
         </label>
         <CustomButton button-id="clear-all"
