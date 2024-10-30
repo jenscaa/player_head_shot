@@ -316,9 +316,18 @@ async function handlePurchase(buyButton, checked, minList, maxList) {
     const string = pElement?.textContent || '';
     const value = extractValue(string);
 
-    // Retrieving the confirm button and press it
-    const confirmButton = confirmDiv.querySelector('div.ut-button-group button');
-    pressButton(confirmButton);
+    // Retrieving the confirm button and press it (old version)
+    // const confirmButton = confirmDiv.querySelectorAll('div.ut-button-group button');
+
+    // EA have now changed some UI element names, so we will have to retrieve all buttons in the confirmDiv
+    const buttons = confirmDiv.querySelectorAll('button')
+
+    if (buttons.length > 0) {
+        const confirmButton = buttons[0]
+        pressButton(confirmButton);
+    } else {
+        console.error("Could not find confirm purchase button.");
+    }
 
     // Wait to see if the player was actually bought
     await wait(confirmPurchaseDelayWait);
