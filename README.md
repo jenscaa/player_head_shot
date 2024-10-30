@@ -13,11 +13,12 @@ Free EAFC 25 Sniper Bot with open source code.
 ## Installation guide
 Note: This extension will only work on Google Chrome.
 These are the steps you will need to follow:
-1. Clone the repository or download the zip file and extract it to your preferred folder. 
-2. Open Google Chrome. 
-3. Go to [Manage Extensions](chrome://extensions/) and enable Developer Mode (in the top right corner). 
-4. Press 'Load unpacked' (in the top left corner) and browse to the sniper_head_shot folder. 
-5. IMPORTANT: Don't select the "player_head_shot" folder, but instead, select the "player_head_shot/dist" folder. Turn on the extension.
+1. **Clone the repository or download the zip file and extract it to your preferred folder.** 
+2. **Open Google Chrome.** 
+3. **Go to [Manage Extensions](chrome://extensions/) and enable Developer Mode (in the top right corner).** 
+4. **Press 'Load unpacked' (in the top left corner) and browse to the "player_head_shot" folder.** 
+5. **IMPORTANT: Don't select the "player_head_shot" folder, but instead, select the "player_head_shot/dist" folder.** 
+6. **Turn on the extension.**
 
 Now, you should be able to open this extension in the EA companion app.
 A quick demonstration of this installation can be found [here]().
