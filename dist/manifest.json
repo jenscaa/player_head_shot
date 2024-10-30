@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "PlayerHeadShot",
-  "version": "1.1",
-  "description": "A simple Chrome extension to search up players",
+  "version": "1.2",
+  "description": "Free EAFC 25 Sniper Bot",
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "action": {
     "default_popup": "./src/popup.html"
