@@ -545,7 +545,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                          @inputChangeEvent="onSearchResultDelayChange"
                          :max="1000"
                          :min="0"
-                         placeholder="Default 150 ms"
+                         placeholder="Default 250 ms"
             ></CustomInput>
             <label class="advanced-label">Delay time for search results (milliseconds)</label>
           </div>
@@ -556,7 +556,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                          @inputChangeEvent="onConfirmDialogDelayChange"
                          :max="1000"
                          :min="0"
-                         placeholder="Default 50 ms"
+                         placeholder="Default 80 ms"
             ></CustomInput>
             <label class="advanced-label">Delay time for confirm dialog (milliseconds)</label>
           </div>
@@ -567,7 +567,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                          @inputChangeEvent="onCheckPurchaseDelayChange"
                          :max="1000"
                          :min="0"
-                         placeholder="Default 500 ms"
+                         placeholder="Default 800 ms"
             ></CustomInput>
             <label class="advanced-label">Delay time for purchase confirmation (milliseconds)</label>
           </div>

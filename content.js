@@ -20,9 +20,9 @@
 let running = false;
 let currentPlayer = '';
 let rpm = 60
-let searchResultDelayWait = 150
-let confirmDialogDelayWait = 50
-let confirmPurchaseDelayWait = 500
+let searchResultDelayWait = 250
+let confirmDialogDelayWait = 80
+let confirmPurchaseDelayWait = 800
 
 // Event listener for Chrome runtime messages
 /**
@@ -52,9 +52,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // Sets delay variables
         rpm = request.rpm || 60
-        searchResultDelayWait = request.searchResultDelay || 150;
-        confirmDialogDelayWait = request.confirmDialogDelay || 50;
-        confirmPurchaseDelayWait = request.confirmPurchaseDelay || 500;
+        searchResultDelayWait = request.searchResultDelay || 250;
+        confirmDialogDelayWait = request.confirmDialogDelay || 80;
+        confirmPurchaseDelayWait = request.confirmPurchaseDelay || 800;
 
         let i = 0;
         let promiseChain = Promise.resolve();  // Start with a resolved promise for chaining async tasks
@@ -274,7 +274,8 @@ async function search(milliseconds, index, checked, minList, maxList) {
 
     // Retrieving the 'first' search result from the current search (If there are any results)
     const parentDiv = document.querySelector('div.paginated-item-list.ut-pinned-list');
-    const liElement = parentDiv?.querySelector('li.listFUTItem.has-auction-data.selected');
+    const ulElement = parentDiv?.querySelector('ul.paginated')
+    const liElement = ulElement?.querySelector('li.listFUTItem.has-auction-data.selected');
 
     // If there exists a result, then press it
     if (liElement) {
