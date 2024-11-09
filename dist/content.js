@@ -274,7 +274,7 @@ async function search(milliseconds, index, checked, minList, maxList) {
 
     // Retrieving the 'first' search result from the current search (If there are any results)
     const parentDiv = document.querySelector('div.paginated-item-list.ut-pinned-list');
-    const ulElement = parentDiv?.querySelector('ul.paginated')
+    const ulElement = parentDiv?.querySelector('ul')
     const liElement = ulElement?.querySelector('li.listFUTItem.has-auction-data.selected');
 
     // If there exists a result, then press it
