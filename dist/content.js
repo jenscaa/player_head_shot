@@ -175,9 +175,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // const priceInputs = document.querySelectorAll('input.ut-number-input-control');
 
         // Update 09.11.2024. EA has changed their Website. Now there are 6 UI inputs with same name 'input.ut-number-input-control'
-        const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control')
+        const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control');
         // Retrieving the 4th div element with this class name
-        const inputDiv = inputDivs[3]
+        const inputDiv = inputDivs[3];
         // Retrieve the Max Buy Now input
         const maxBuyNowInput = inputDiv.querySelector('input.ut-number-input-control')
 
@@ -411,9 +411,15 @@ const updateMinBidPrice = (index) => {
     if (index % 10 === 0) {
 
         // Retrieve the Min Bid Price input and simulate inserting 150 into it
-        const priceInputs = document.getElementsByClassName('ut-number-input-control');
-        if (priceInputs[0]) {
-            const minBidPrice = priceInputs[0];
+        // Update 09.11.2024. EA has changed their Website. Now there are 6 UI inputs with same name 'input.ut-number-input-control'
+
+        const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control');
+        // We are only interested in the first element
+        const inputDiv = inputDivs[0];
+        // Retrieving the minBidPrice
+        const minBidPrice = inputDiv.querySelector('input.ut-number-input-control');
+
+        if (minBidPrice) {
             minBidPrice.value = 150
             const inputEvent = new Event('input', { bubbles: true });
             const changeEvent = new Event('change', { bubbles: true });
