@@ -172,14 +172,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     else if (request.action === 'maxBuyNowChange') {
 
         // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
-        const priceInputs = document.getElementsByClassName('ut-number-input-control');
+        // const priceInputs = document.querySelectorAll('input.ut-number-input-control');
 
-        // We are interested in the 4th element - Max Buy Now input
-        if (priceInputs[3]) {
+        // Update 09.11.2024. EA has changed their Website. Now there are 6 UI inputs with same name 'input.ut-number-input-control'
+        const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control')
+        // Retrieving the 4th div element with this class name
+        const inputDiv = inputDivs[3]
+        // Retrieve the Max Buy Now input
+        const maxBuyNowInput = inputDiv.querySelector('input.ut-number-input-control')
 
-            // Retrieve the Max Buy Now input
-            const maxBuyNowInput = priceInputs[3];
-
+        if (maxBuyNowInput) {
             // Set the value of the input
             maxBuyNowInput.value = request.value;
 
