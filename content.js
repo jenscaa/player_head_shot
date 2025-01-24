@@ -12,6 +12,7 @@
 /**
  * @type {boolean} running - Flag to control whether the search process is currently running.
  * @type {string} currentPlayer - Stores the name of the current player being searched.
+ * @type {number} purchased - Counts how many times a card have been purchased.
  * @type {number} rpm - The rate per minute (RPM) that controls the speed of search iterations.
  * @type {number} searchResultDelayWait - Delay in milliseconds for registration of search results.
  * @type {number} confirmDialogDelayWait - Delay in milliseconds for registration of confirm dialog.
@@ -19,6 +20,7 @@
  */
 let running = false;
 let currentPlayer = '';
+let purchased = 0
 let rpm = 60
 let searchResultDelayWait = 250
 let confirmDialogDelayWait = 80
@@ -71,6 +73,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     return; // Exit the loop if running is set to false
                 }
 
+                // Stop loop if the purchase limit is exceeded
+                else if (request.purchaseLimit !== undefined || request.purchaseLimit !== '') {
+                    if (purchased >= request.purchaseLimit) {
+                        purchased = 0
+                        chrome.runtime.sendMessage({ action: 'reachedPurchaseLimit' }, (response) => {
+                            console.log("Response from popup:", response);
+                        });
+                        return;
+                    }
+                }
+
                 // Chain search operations with promises
                 promiseChain = promiseChain.then(() => {
                     console.log("Starting search iteration");
@@ -100,6 +113,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     });
                     return;
                 }
+
+                // Stop loop if the purchase limit is exceeded
+                else if (request.purchaseLimit !== undefined || request.purchaseLimit !== '') {
+                    if (purchased >= request.purchaseLimit) {
+                        purchased = 0
+                        chrome.runtime.sendMessage({ action: 'reachedPurchaseLimit' }, (response) => {
+                            console.log("Response from popup:", response);
+                        });
+                        return;
+                    }
+                }
+
                 promiseChain = promiseChain.then(() => {
                     console.log("Starting search iteration");
                     return search(convertRpmToMilliseconds(rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
@@ -170,14 +195,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      * Handles the 'maxBuyNowChange' action which simulates a change in the Max Buy Now input.
      */
     else if (request.action === 'maxBuyNowChange') {
+        console.log(request.value)
 
         // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
         // const priceInputs = document.querySelectorAll('input.ut-number-input-control');
 
         // Update 09.11.2024. EA has changed their Website. Now there are 6 UI inputs with same name 'input.ut-number-input-control'
         const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control');
+
         // Retrieving the 4th div element with this class name
         const inputDiv = inputDivs[3];
+
         // Retrieve the Max Buy Now input
         const maxBuyNowInput = inputDiv.querySelector('input.ut-number-input-control')
 
@@ -341,6 +369,7 @@ async function handlePurchase(buyButton, checked, minList, maxList) {
     // Check if the player was bought
     if (boughtLi) {
         chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value });
+        purchased++
 
         // List the card for sale if 'checked' is true.
         if (checked) {
