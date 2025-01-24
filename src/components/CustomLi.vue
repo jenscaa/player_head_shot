@@ -6,56 +6,56 @@
  * @prop {string} rating - The rating of the player. This prop is required.
  */
 const props = defineProps({
-  name: {
-    type: String,
-    required: true
-  },
-  rating: {
-    type: String,
-    required: true
-  }
+    name: {
+        type: String,
+        required: true
+    },
+    rating: {
+        type: String,
+        required: true
+    }
 })
 </script>
 
 <template>
-  <li>
-    <div class="li-container">
-      <p class="name">{{ name }}</p>
-      <p class="rating">{{ rating }}</p>
-    </div>
-  </li>
+    <li>
+        <div class="li-container">
+            <p class="name">{{ name }}</p>
+            <p class="rating">{{ rating }}</p>
+        </div>
+    </li>
 </template>
 
 <style scoped>
 :root {
-  --primary-color: #EF4765;
-  --secondary-color: #FF9A5A;
+    --primary-color: #EF4765;
+    --secondary-color: #FF9A5A;
 }
 
 li {
-  border-bottom: 1px solid var(--secondary-color);
+    border-bottom: 1px solid var(--secondary-color);
 }
 
 li:hover {
-  color: white;
-  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
+    color: white;
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
 }
 
 .li-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }
 
 p {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .name {
-  text-align: left;
+    text-align: left;
 }
 
 .rating {
-  text-align: right;
+    text-align: right;
 }
 </style>

@@ -12,6 +12,7 @@
 /**
  * @type {boolean} running - Flag to control whether the search process is currently running.
  * @type {string} currentPlayer - Stores the name of the current player being searched.
+ * @type {number} purchased - Counts how many times a card have been purchased.
  * @type {number} rpm - The rate per minute (RPM) that controls the speed of search iterations.
  * @type {number} searchResultDelayWait - Delay in milliseconds for registration of search results.
  * @type {number} confirmDialogDelayWait - Delay in milliseconds for registration of confirm dialog.
@@ -19,6 +20,7 @@
  */
 let running = false;
 let currentPlayer = '';
+let purchased = 0
 let rpm = 60
 let searchResultDelayWait = 250
 let confirmDialogDelayWait = 80
@@ -65,10 +67,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 if (!running) {
                     // Notify that the search has finished
-                    chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
+                    chrome.runtime.sendMessage({action: 'finishedSearch'}, (response) => {
                         console.log("Response from popup:", response);
                     });
                     return; // Exit the loop if running is set to false
+                }
+
+                // Stop loop if the purchase limit is exceeded
+                else if (request.purchaseLimit !== undefined || request.purchaseLimit !== '') {
+                    if (purchased >= request.purchaseLimit) {
+                        purchased = 0
+                        chrome.runtime.sendMessage({action: 'reachedPurchaseLimit'}, (response) => {
+                            console.log("Response from popup:", response);
+                        });
+                        return;
+                    }
                 }
 
                 // Chain search operations with promises
@@ -80,26 +93,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     loop(); // Chain the next iteration (Continue the loop)
                 });
             }
+
             loop();  // Start the loop
 
-        // Run the search loop until the search limit is reached
+            // Run the search loop until the search limit is reached
         } else {
             function loop() {
 
                 if (!running) {
                     // Notify that the search has finished
-                    chrome.runtime.sendMessage({ action: 'finishedSearch' }, (response) => {
+                    chrome.runtime.sendMessage({action: 'finishedSearch'}, (response) => {
                         console.log("Response from popup:", response);
                     });
                     return;
 
                     // Notify that the search has finished by search limit
                 } else if (i >= request.searchLimit) {
-                    chrome.runtime.sendMessage({ action: 'reachedSearchLimit' }, (response) => {
+                    chrome.runtime.sendMessage({action: 'reachedSearchLimit'}, (response) => {
                         console.log("Response from popup:", response);
                     });
                     return;
                 }
+
+                // Stop loop if the purchase limit is exceeded
+                else if (request.purchaseLimit !== undefined || request.purchaseLimit !== '') {
+                    if (purchased >= request.purchaseLimit) {
+                        purchased = 0
+                        chrome.runtime.sendMessage({action: 'reachedPurchaseLimit'}, (response) => {
+                            console.log("Response from popup:", response);
+                        });
+                        return;
+                    }
+                }
+
                 promiseChain = promiseChain.then(() => {
                     console.log("Starting search iteration");
                     return search(convertRpmToMilliseconds(rpm), i, request.checked, request.minList, request.maxList);  // Return the promise from the search function
@@ -108,6 +134,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     loop();  // Chain the next iteration (Continue the loop)
                 });
             }
+
             loop();  // Start the loop
         }
     }
@@ -130,7 +157,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         SearchPlayerInput.value = request.value
 
         // Simulate an input event for the EA Web to registration the new value
-        const inputEvent = new Event('input', { bubbles: true });
+        const inputEvent = new Event('input', {bubbles: true});
         SearchPlayerInput.dispatchEvent(inputEvent);
 
         // Waits 1.5 seconds (1500 milliseconds) in order to register the incoming list of players
@@ -154,13 +181,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         SearchPlayerInput.value = request.value
 
         // Simulate an input event for the EA Web to registration the new value
-        const inputEvent = new Event('input', { bubbles: true });
+        const inputEvent = new Event('input', {bubbles: true});
         SearchPlayerInput.dispatchEvent(inputEvent);
 
         // Waits 1 second (1 millisecond) in order to register the incoming list of players and send it to the popup
         setTimeout(() => {
             const list = getListOfNames()
-            chrome.runtime.sendMessage({ action: 'updateNames', list: list }, (response) => {
+            chrome.runtime.sendMessage({action: 'updateNames', list: list}, (response) => {
                 console.log("Response from popup:", response);
             });
         }, 1000); // Wait 1000 milliseconds for web app to display list
@@ -170,14 +197,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      * Handles the 'maxBuyNowChange' action which simulates a change in the Max Buy Now input.
      */
     else if (request.action === 'maxBuyNowChange') {
+        console.log(request.value)
 
         // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
         // const priceInputs = document.querySelectorAll('input.ut-number-input-control');
 
         // Update 09.11.2024. EA has changed their Website. Now there are 6 UI inputs with same name 'input.ut-number-input-control'
         const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control');
+
         // Retrieving the 4th div element with this class name
         const inputDiv = inputDivs[3];
+
         // Retrieve the Max Buy Now input
         const maxBuyNowInput = inputDiv.querySelector('input.ut-number-input-control')
 
@@ -186,8 +216,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             maxBuyNowInput.value = request.value;
 
             // Trigger input and change events for the web app to register input change
-            const inputEvent = new Event('input', { bubbles: true });
-            const changeEvent = new Event('change', { bubbles: true });
+            const inputEvent = new Event('input', {bubbles: true});
+            const changeEvent = new Event('change', {bubbles: true});
             maxBuyNowInput.dispatchEvent(inputEvent); // Trigger input event
             maxBuyNowInput.dispatchEvent(changeEvent); // Trigger change event as fallback
         } else {
@@ -224,7 +254,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         confirmPurchaseDelayWait = request.value;
     }
 
-    // Honestly, I don't know why I haven't deleted this one
+        // Honestly, I don't know why I haven't deleted this one
     /**
      * Handles the 'logElements' action which logs all the elements it finds on the EA web page.
      */
@@ -238,7 +268,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         // Optional: send a response back
-        sendResponse({ status: 'Elements logged successfully!' });
+        sendResponse({status: 'Elements logged successfully!'});
     }
 });
 
@@ -340,15 +370,16 @@ async function handlePurchase(buyButton, checked, minList, maxList) {
 
     // Check if the player was bought
     if (boughtLi) {
-        chrome.runtime.sendMessage({ action: 'bought', name: currentPlayer, price: value });
+        chrome.runtime.sendMessage({action: 'bought', name: currentPlayer, price: value});
+        purchased++
 
         // List the card for sale if 'checked' is true.
         if (checked) {
             await listCard(minList, maxList);
-            chrome.runtime.sendMessage({ action: 'listed', name: currentPlayer, minList, maxList });
+            chrome.runtime.sendMessage({action: 'listed', name: currentPlayer, minList, maxList});
         }
     } else {
-        chrome.runtime.sendMessage({ action: 'failed', name: currentPlayer, price: value });
+        chrome.runtime.sendMessage({action: 'failed', name: currentPlayer, price: value});
     }
 }
 
@@ -373,7 +404,7 @@ async function performNextSearchStep(milliseconds) {
     }
 
     // Send message back to popup to confirm search. This is used for counting searches
-    chrome.runtime.sendMessage({ action: 'searched' });
+    chrome.runtime.sendMessage({action: 'searched'});
 
     // Wait for the specified milliseconds before resolving the search promise
     await wait(milliseconds);
@@ -386,7 +417,7 @@ async function performNextSearchStep(milliseconds) {
  * @returns {number} - The equivalent number of milliseconds per round.
  */
 const convertRpmToMilliseconds = (rpm) => {
-    return (60/rpm) * 1000;
+    return (60 / rpm) * 1000;
 }
 
 /**
@@ -422,8 +453,8 @@ const updateMinBidPrice = (index) => {
 
         if (minBidPrice) {
             minBidPrice.value = 150
-            const inputEvent = new Event('input', { bubbles: true });
-            const changeEvent = new Event('change', { bubbles: true });
+            const inputEvent = new Event('input', {bubbles: true});
+            const changeEvent = new Event('change', {bubbles: true});
             minBidPrice.dispatchEvent(inputEvent); // Trigger input event
             minBidPrice.dispatchEvent(changeEvent); // Trigger change event as fallback
         }
@@ -452,8 +483,8 @@ const listCard = (minList, maxList) => {
     const minListInput = listInputs[0];
     const maxListInput = listInputs[1];
     const listButton = listDiv.querySelector('button.btn-standard.call-to-action');
-    const inputEvent = new Event('input', { bubbles: true });
-    const changeEvent = new Event('change', { bubbles: true });
+    const inputEvent = new Event('input', {bubbles: true});
+    const changeEvent = new Event('change', {bubbles: true});
     minListInput.value = minList;
     minListInput.dispatchEvent(inputEvent);
     minListInput.dispatchEvent(changeEvent);
