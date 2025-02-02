@@ -194,10 +194,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     /**
+     * Handles the 'minBuyNowChange' action which simulates a change in the Min Buy Now input.
+     */
+    else if (request.action === 'minBuyNowChange') {
+
+        // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
+        const inputDivs = document.querySelectorAll('div.ut-numeric-input-spinner-control');
+
+        // Retrieving the 3rd div element with this class name
+        const inputDiv = inputDivs[2];
+
+        // Retrieve the Min Buy Now input
+        const minBuyNowInput = inputDiv.querySelector('input.ut-number-input-control')
+
+        if (minBuyNowInput) {
+            // Set the value of the input
+            minBuyNowInput.value = request.value;
+
+            // Trigger input and change events for the web app to register input change
+            const inputEvent = new Event('input', {bubbles: true});
+            const changeEvent = new Event('change', {bubbles: true});
+            minBuyNowInput.dispatchEvent(inputEvent); // Trigger input event
+            minBuyNowInput.dispatchEvent(changeEvent); // Trigger change event as fallback
+        } else {
+            console.error("Input element at index [2] not found");
+        }
+    }
+
+    /**
      * Handles the 'maxBuyNowChange' action which simulates a change in the Max Buy Now input.
      */
     else if (request.action === 'maxBuyNowChange') {
-        console.log(request.value)
 
         // Retrieve the price input elements (There are 4 of them: Min Bid Price, Max Bid Price, Min Buy Now Price, and Max Buy Now Price)
         // const priceInputs = document.querySelectorAll('input.ut-number-input-control');

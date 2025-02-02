@@ -39,6 +39,7 @@ const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
 const purchaseLimit = ref();
+const minBuyNow = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
@@ -101,6 +102,25 @@ const onPurchaseLimitChange = (newValue) => {
     purchaseLimit.value = newValue;
     chrome.storage.local.set({purchaseLimit: newValue}, function () {
     });
+}
+
+/**
+ * Updates the min buy now price, stores it, and sends the updated value to the content script.
+ *
+ * @param {number} newValue - The new max buy now price.
+ */
+const onMinBuyNowChange = async (newValue) => {
+    minBuyNow.value = newValue;
+    chrome.storage.local.set({minBuyNow: newValue}, function () {
+    });
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'minBuyNowChange', value: minBuyNow.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -209,6 +229,7 @@ const onClearAllClicked = async () => {
     playerName.value = null;
     searchLimit.value = null;
     purchaseLimit.value = null;
+    minBuyNow.value = null;
     maxBuyNow.value = null;
     autoListChecked.value = false;
     minListPrice.value = null;
@@ -221,6 +242,7 @@ const onClearAllClicked = async () => {
         name: null,
         searchLimit: '',
         purchaseLimit: '',
+        minBuyNow: null,
         maxBuyNow: null,
         autoListChecked: false,
         minListPrice: null,
@@ -389,11 +411,12 @@ onMounted(async () => {
     });
 
     // Retrieve various settings from Chrome storage and insert them to the global variables
-    await chrome.storage.local.get(['name', 'searchLimit', 'purchaseLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
+    await chrome.storage.local.get(['name', 'searchLimit', 'purchaseLimit', 'minBuyNow', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
         playerName.value = result.name || undefined;
         if (result.name) onPlayerSelected(result.name);
         searchLimit.value = result.searchLimit || undefined;
         purchaseLimit.value = result.purchaseLimit || undefined;
+        minBuyNow.value = result.minBuyNow || undefined;
         maxBuyNow.value = result.maxBuyNow || undefined;
         onMaxBuyNowChange(result.maxBuyNow)
         autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;
@@ -535,16 +558,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                  placeholder="No limit"
                     ></CustomInput>
                 </div>
-                <CustomInput id="max-buy-now-input"
-                             input-id="max-buy-now-input"
-                             label="Max Buy Now"
-                             v-model="maxBuyNow"
-                             :disabled="running"
-                             :max="15000000"
-                             :min="0"
-                             @inputChangeEvent="onMaxBuyNowChange"
-                             placeholder="Max buy now">
-                </CustomInput>
+                <div class="custom-button-container">
+                    <CustomInput id="min-buy-now-input"
+                                 input-id="min-buy-now-input"
+                                 label="Min Buy Now"
+                                 v-model="minBuyNow"
+                                 :disabled="running"
+                                 :max="15000000"
+                                 :min="0"
+                                 @inputChangeEvent="onMinBuyNowChange"
+                                 placeholder="Any">
+                    </CustomInput>
+                    <CustomInput id="max-buy-now-input"
+                                 input-id="max-buy-now-input"
+                                 label="Max Buy Now"
+                                 v-model="maxBuyNow"
+                                 :disabled="running"
+                                 :max="15000000"
+                                 :min="0"
+                                 @inputChangeEvent="onMaxBuyNowChange"
+                                 placeholder="Any">
+                    </CustomInput>
+                </div>
                 <AutoListCheckBox @checkChangedEvent="onCheckedChanged" :checked="autoListChecked"></AutoListCheckBox>
                 <div v-if="autoListChecked" class="custom-button-container">
                     <CustomInput input-id="min-list-price-input"
@@ -800,14 +835,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 .credit-label a {
     color: var(--secondary-color);
-}
-
-#max-buy-now-input {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-self: center;
-    justify-self: center;
-    width: 40%;
 }
 </style>

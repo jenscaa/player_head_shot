@@ -31,7 +31,7 @@ const onCheckedChange = (event) => {
 
 <template>
   <div class="auto-list-container">
-    <label class="label">List after buy</label>
+    <label class="label">List after purchase</label>
     <div>
       <input id="checkbox" type="checkbox" class="custom-checkbox" :checked="checked" @change="onCheckedChange">
       <label class="checkbox-label" for="checkbox"></label>
