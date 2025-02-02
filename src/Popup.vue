@@ -38,6 +38,7 @@ const advancedSettings = ref(false);
 const playerName = ref('');
 const nameList = ref([]);
 const searchLimit = ref();
+const purchaseLimit = ref();
 const maxBuyNow = ref();
 const minListPrice = ref();
 const maxListPrice = ref();
@@ -67,16 +68,17 @@ const sniperMissAudio = new Audio('../assets/SniperMiss.MP3')
  * @param {string} newValue - The new value of the player name.
  */
 const onPlayerInputChange = async (newValue) => {
-  playerName.value = newValue
-  await chrome.storage.local.set({ name: newValue }, function () {});
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'inputChange', value: playerName.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    playerName.value = newValue
+    await chrome.storage.local.set({name: newValue}, function () {
+    });
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'inputChange', value: playerName.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -85,8 +87,20 @@ const onPlayerInputChange = async (newValue) => {
  * @param {number} newValue - The new search limit.
  */
 const onSearchLimitChange = (newValue) => {
-  searchLimit.value = newValue
-  chrome.storage.local.set({ searchLimit: newValue }, function () {});
+    searchLimit.value = newValue
+    chrome.storage.local.set({searchLimit: newValue}, function () {
+    });
+}
+
+/**
+ * Updates the search purchase limit and stores the value in Chrome local storage.
+ *
+ * @param {number} newValue - The new search limit.
+ */
+const onPurchaseLimitChange = (newValue) => {
+    purchaseLimit.value = newValue;
+    chrome.storage.local.set({purchaseLimit: newValue}, function () {
+    });
 }
 
 /**
@@ -95,23 +109,24 @@ const onSearchLimitChange = (newValue) => {
  * @param {number} newValue - The new max buy now price.
  */
 const onMaxBuyNowChange = async (newValue) => {
-  maxBuyNow.value = newValue
-  chrome.storage.local.set({ maxBuyNow: newValue }, function () {});
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'maxBuyNowChange', value: maxBuyNow.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    maxBuyNow.value = newValue;
+    chrome.storage.local.set({maxBuyNow: newValue}, function () {
+    });
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'maxBuyNowChange', value: maxBuyNow.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 
-  // Updates the profit display based on the calculated profit
-  if (maxBuyNow.value && maxListPrice.value) {
-    const profitParagraph =  profitRef.value
-    const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-    profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
-  }
+    // Updates the profit display based on the calculated profit
+    if (maxBuyNow.value && maxListPrice.value) {
+        const profitParagraph = profitRef.value
+        const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+        profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
+    }
 }
 
 /**
@@ -120,23 +135,24 @@ const onMaxBuyNowChange = async (newValue) => {
  * @param {string} newValue - The new selected player name.
  */
 const onPlayerSelected = async (newValue) => {
-  playerName.value = newValue
-  await chrome.storage.local.set({ name: newValue }, function () {});
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'playerSelected', value: playerName.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    playerName.value = newValue
+    await chrome.storage.local.set({name: newValue}, function () {
+    });
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'playerSelected', value: playerName.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
  * Toggles the visibility of advanced settings.
  */
 const onAdvancedSettingsPressed = () => {
-  advancedSettings.value = !advancedSettings.value;
+    advancedSettings.value = !advancedSettings.value;
 }
 
 /**
@@ -145,15 +161,16 @@ const onAdvancedSettingsPressed = () => {
  * @param {boolean} newValue - The new value for the auto-list checkbox.
  */
 const onCheckedChanged = (newValue) => {
-  autoListChecked.value = newValue
-  chrome.storage.local.set({ autoListChecked: newValue }, function () {});
-  setTimeout(() => {
-    if (maxBuyNow.value && maxListPrice.value) {
-      const profitParagraph =  profitRef.value
-      const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-      profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
-    }
-  }, 50)
+    autoListChecked.value = newValue
+    chrome.storage.local.set({autoListChecked: newValue}, function () {
+    });
+    setTimeout(() => {
+        if (maxBuyNow.value && maxListPrice.value) {
+            const profitParagraph = profitRef.value
+            const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+            profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
+        }
+    }, 50)
 }
 
 /**
@@ -162,8 +179,9 @@ const onCheckedChanged = (newValue) => {
  * @param {number} newValue - The new minimum listing price.
  */
 const onMinListPriceChange = (newValue) => {
-  minListPrice.value = newValue;
-  chrome.storage.local.set({ minListPrice: newValue }, function () {});
+    minListPrice.value = newValue;
+    chrome.storage.local.set({minListPrice: newValue}, function () {
+    });
 }
 
 /**
@@ -172,42 +190,45 @@ const onMinListPriceChange = (newValue) => {
  * @param {number} newValue - The new maximum listing price.
  */
 const onMaxListPriceChange = (newValue) => {
-  maxListPrice.value = newValue;
-  chrome.storage.local.set({ maxListPrice: newValue }, function () {});
-  setTimeout(() => {
-    if (maxBuyNow.value && maxListPrice.value) {
-      const profitParagraph =  profitRef.value
-      const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
-      profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
-    }
-  }, 50)
+    maxListPrice.value = newValue;
+    chrome.storage.local.set({maxListPrice: newValue}, function () {
+    });
+    setTimeout(() => {
+        if (maxBuyNow.value && maxListPrice.value) {
+            const profitParagraph = profitRef.value
+            const profit = eaAfterTax(maxBuyNow.value, maxListPrice.value);
+            profitParagraph.style.setProperty('color', profit > 0 ? 'chartreuse' : profit < 0 ? '#ef4765' : 'white');
+        }
+    }, 50)
 }
 
 /**
  * Clears all input fields and resets default values.
  */
 const onClearAllClicked = async () => {
-  playerName.value = null;
-  searchLimit.value = null;
-  maxBuyNow.value = null;
-  autoListChecked.value = false;
-  minListPrice.value = null;
-  maxListPrice.value = null;
-  rpm.value = 60;
-  sliderKey.value++;
+    playerName.value = null;
+    searchLimit.value = null;
+    purchaseLimit.value = null;
+    maxBuyNow.value = null;
+    autoListChecked.value = false;
+    minListPrice.value = null;
+    maxListPrice.value = null;
+    rpm.value = 60;
+    sliderKey.value++;
 
-  // Resets chrome local storage
-  await chrome.storage.local.set({
-    name: null,
-    searchLimit: '',
-    maxBuyNow: null,
-    autoListChecked: false,
-    minListPrice: null,
-    maxListPrice: null,
-    rpm: 60
-  }, function () {
-    console.log('All values have been reset to local storage.');
-  });
+    // Resets chrome local storage
+    await chrome.storage.local.set({
+        name: null,
+        searchLimit: '',
+        purchaseLimit: '',
+        maxBuyNow: null,
+        autoListChecked: false,
+        minListPrice: null,
+        maxListPrice: null,
+        rpm: 60
+    }, function () {
+        console.log('All values have been reset to local storage.');
+    });
 }
 
 /**
@@ -216,16 +237,17 @@ const onClearAllClicked = async () => {
  * @param {number} newValue - The new RPM value.
  */
 const onSliderValueChange = async (newValue) => {
-  rpm.value = newValue;
-  chrome.storage.local.set({ rpm: newValue }, function () {});
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'rpmChange', value: rpm.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    rpm.value = newValue;
+    chrome.storage.local.set({rpm: newValue}, function () {
+    });
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'rpmChange', value: rpm.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -234,15 +256,15 @@ const onSliderValueChange = async (newValue) => {
  * @param {number} newValue - The new search result delay in milliseconds.
  */
 const onSearchResultDelayChange = async (newValue) => {
-  searchResultDelay.value = newValue;
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'searchResultDelay', value: searchResultDelay.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    searchResultDelay.value = newValue;
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'searchResultDelay', value: searchResultDelay.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -251,15 +273,15 @@ const onSearchResultDelayChange = async (newValue) => {
  * @param {number} newValue - The new confirm dialog delay in milliseconds.
  */
 const onConfirmDialogDelayChange = async (newValue) => {
-  confirmDialogDelay.value = newValue;
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'confirmDialogDelay', value: confirmDialogDelay.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    confirmDialogDelay.value = newValue;
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'confirmDialogDelay', value: confirmDialogDelay.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -268,15 +290,15 @@ const onConfirmDialogDelayChange = async (newValue) => {
  * @param {number} newValue - The new confirm purchase delay in milliseconds.
  */
 const onCheckPurchaseDelayChange = async (newValue) => {
-  confirmPurchaseDelay.value = newValue;
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'confirmPurchaseDelay', value: confirmDialogDelay.value});
-  } else {
-    console.error("No active tab found. ")
-  }
+    confirmPurchaseDelay.value = newValue;
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'confirmPurchaseDelay', value: confirmDialogDelay.value});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -287,49 +309,50 @@ const onCheckPurchaseDelayChange = async (newValue) => {
  * @returns {number} - The profit after the 5% EA tax is deducted.
  */
 const eaAfterTax = (buyPrice, listPrice) => {
-  const profit = listPrice * 0.95 - buyPrice;
-  return Math.round(profit);
+    const profit = listPrice * 0.95 - buyPrice;
+    return Math.round(profit);
 };
 
 /**
  * Starts the search process by sending a message to the content script.
  */
 const startSearch = async () => {
-  running.value = true;
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'startSearch',
-      searchLimit: searchLimit.value,
-      rpm: rpm.value,
-      checked: autoListChecked.value,
-      minList: minListPrice.value,
-      maxList: maxListPrice.value,
-      searchResultDelay: searchResultDelay.value,
-      confirmDialogDelay: confirmDialogDelay.value,
-      confirmPurchaseDelay: confirmPurchaseDelay.value
+    running.value = true;
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
     });
-    logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
-  } else {
-    console.error("No active tab found. ")
-  }
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {
+            action: 'startSearch',
+            searchLimit: searchLimit.value,
+            purchaseLimit: purchaseLimit.value,
+            rpm: rpm.value,
+            checked: autoListChecked.value,
+            minList: minListPrice.value,
+            maxList: maxListPrice.value,
+            searchResultDelay: searchResultDelay.value,
+            confirmDialogDelay: confirmDialogDelay.value,
+            confirmPurchaseDelay: confirmPurchaseDelay.value
+        });
+        logList.value.push(`[${new Date().toLocaleString()}] Bot started`);
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
  * Stops the search process by sending a 'stopSearch' message to the content script.
  */
 const stopSearch = async () => {
-  running.value = false;
-  let [tab] = await chrome.tabs.query({
-    active: true, currentWindow: true
-  });
-  if (tab) {
-    chrome.tabs.sendMessage(tab.id, {action: 'stopSearch'});
-  } else {
-    console.error("No active tab found. ")
-  }
+    running.value = false;
+    let [tab] = await chrome.tabs.query({
+        active: true, currentWindow: true
+    });
+    if (tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'stopSearch'});
+    } else {
+        console.error("No active tab found. ")
+    }
 }
 
 /**
@@ -339,12 +362,12 @@ const stopSearch = async () => {
  * @param {string} secondaryColor - The secondary theme color.
  */
 const changeThemeColors = (primaryColor, secondaryColor) => {
-  document.documentElement.style.setProperty('--primary-color', primaryColor);
-  document.documentElement.style.setProperty('--secondary-color', secondaryColor);
-  const colorTheme = { primaryColor: primaryColor, secondaryColor: secondaryColor }
-  chrome.storage.local.set({ theme: colorTheme }, function () {
-    console.log('Theme colors is saved to local storage.');
-  });
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+    document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+    const colorTheme = {primaryColor: primaryColor, secondaryColor: secondaryColor}
+    chrome.storage.local.set({theme: colorTheme}, function () {
+        console.log('Theme colors is saved to local storage.');
+    });
 };
 
 /**
@@ -352,32 +375,33 @@ const changeThemeColors = (primaryColor, secondaryColor) => {
  * This function is triggered when the component is mounted.
  */
 onMounted(async () => {
-  // Retrieve the 'theme' object from Chrome storage
-  chrome.storage.local.get(['theme'], function(result) {
-    if (result.theme) {
-      const { primaryColor, secondaryColor } = result.theme;
-      // Apply the theme colors to CSS variables
-      document.documentElement.style.setProperty('--primary-color', primaryColor);
-      document.documentElement.style.setProperty('--secondary-color', secondaryColor);
-      console.log('Theme loaded and applied:', primaryColor, secondaryColor);
-    } else {
-      console.error('No theme found in storage.');
-    }
-  });
+    // Retrieve the 'theme' object from Chrome storage
+    chrome.storage.local.get(['theme'], function (result) {
+        if (result.theme) {
+            const {primaryColor, secondaryColor} = result.theme;
+            // Apply the theme colors to CSS variables
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+            console.log('Theme loaded and applied:', primaryColor, secondaryColor);
+        } else {
+            console.error('No theme found in storage.');
+        }
+    });
 
-  // Retrieve various settings from Chrome storage and insert them to the global variables
-  await chrome.storage.local.get(['name', 'searchLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
-    playerName.value = result.name || undefined;
-    if (result.name) onPlayerSelected(result.name);
-    searchLimit.value = result.searchLimit || undefined;
-    maxBuyNow.value = result.maxBuyNow || undefined;
-    onMaxBuyNowChange(result.maxBuyNow)
-    autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;
-    minListPrice.value = result.minListPrice || undefined;
-    maxListPrice.value = result.maxListPrice || undefined;
-    rpm.value = result.rpm || 60;
-    sliderKey.value++;
-  });
+    // Retrieve various settings from Chrome storage and insert them to the global variables
+    await chrome.storage.local.get(['name', 'searchLimit', 'purchaseLimit', 'maxBuyNow', 'autoListChecked', 'minListPrice', 'maxListPrice', 'rpm'], function (result) {
+        playerName.value = result.name || undefined;
+        if (result.name) onPlayerSelected(result.name);
+        searchLimit.value = result.searchLimit || undefined;
+        purchaseLimit.value = result.purchaseLimit || undefined;
+        maxBuyNow.value = result.maxBuyNow || undefined;
+        onMaxBuyNowChange(result.maxBuyNow)
+        autoListChecked.value = result.autoListChecked !== undefined ? result.autoListChecked : false;
+        minListPrice.value = result.minListPrice || undefined;
+        maxListPrice.value = result.maxListPrice || undefined;
+        rpm.value = result.rpm || 60;
+        sliderKey.value++;
+    });
 });
 
 /**
@@ -389,360 +413,401 @@ onMounted(async () => {
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
-  /**
-   * Handles the 'updateNames' action which updates the UI with the list of player names
-   * received from the content script.
-   */
-  if (request.action === 'updateNames') {
+    /**
+     * Handles the 'updateNames' action which updates the UI with the list of player names
+     * received from the content script.
+     */
+    if (request.action === 'updateNames') {
 
-    // Sets the name list array from content script
-    nameList.value = request.list;
-    sendResponse({success: true, message: 'successful'})
-  }
+        // Sets the name list array from content script
+        nameList.value = request.list;
+        sendResponse({success: true, message: 'successful'})
+    }
 
-  /**
-   * Handles the 'finishedSearch' action which stops the search process by setting the 'running' flag to false
-   * and logs the event in the logList.
-   */
-  else if (request.action === 'finishedSearch') {
-    running.value = false
-    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
-    sendResponse({success: true, message: 'successful'})
+    /**
+     * Handles the 'finishedSearch' action which stops the search process by setting the 'running' flag to false
+     * and logs the event in the logList.
+     */
+    else if (request.action === 'finishedSearch') {
+        running.value = false
+        logList.value.push(`[${new Date().toLocaleString()}] Bot stopped`);
+        sendResponse({success: true, message: 'successful'})
 
-  }
+    }
 
-  /**
-   * Handles the 'reachedSearchLimit' action which stops the search process when the defined search limit is reached.
-   * It updates the 'running' flag to false and logs the event in the logList along with the search limit reached.
-   */
-  else if (request.action === 'reachedSearchLimit') {
-    running.value = false
-    logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by search limit ${searchLimit.value}`);
-    sendResponse({success: true, message: 'successful'})
+    /**
+     * Handles the 'reachedSearchLimit' action which stops the search process when the defined search limit is reached.
+     * It updates the 'running' flag to false and logs the event in the logList along with the search limit reached.
+     */
+    else if (request.action === 'reachedSearchLimit') {
+        running.value = false
+        logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by search limit ${searchLimit.value}`);
+        sendResponse({success: true, message: 'successful'})
 
-  }
+    }
 
-  /**
-   * Handles the 'searched' action which increments the 'searches' counter whenever a search iteration is completed.
-   */
-  else if (request.action === 'searched') {
-    searches.value++;
-    sendResponse({success: true, message: 'successful'})
+    /**
+     * Handles the 'reachedPurchaseLimit' action which stops the search process when the defined search limit is reached.
+     * It updates the 'running' flag to false and logs the event in the logList along with the search limit reached.
+     */
+    else if (request.action === 'reachedPurchaseLimit') {
+        running.value = false
+        logList.value.push(`[${new Date().toLocaleString()}] Bot stopped by purchased limit ${purchaseLimit.value}`);
+        sendResponse({success: true, message: 'successful'})
 
-  }
+    }
 
-  /**
-   * Handles the 'bought' action which increments the 'buys' counter when a player is successfully purchased,
-   * logs the purchase details in the logList, and plays the 'sniperHeadShotAudio' sound.
-   */
-  else if (request.action === 'bought') {
-    buys.value++;
-    logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
-    sniperHeadShotAudio.play();
-    sendResponse({success: true, message: 'successful'})
+    /**
+     * Handles the 'searched' action which increments the 'searches' counter whenever a search iteration is completed.
+     */
+    else if (request.action === 'searched') {
+        searches.value++;
+        sendResponse({success: true, message: 'successful'})
 
-  }
+    }
 
-  /**
-   * Handles the 'listed' action which logs the details of the listed player (min/max price) in the logList.
-   */
-  else if (request.action === 'listed') {
-    logList.value.push(`[${new Date().toLocaleString()}] Listed ${request.name} for min ${request.minList} and max ${request.maxList} coins`);
+    /**
+     * Handles the 'bought' action which increments the 'buys' counter when a player is successfully purchased,
+     * logs the purchase details in the logList, and plays the 'sniperHeadShotAudio' sound.
+     */
+    else if (request.action === 'bought') {
+        buys.value++;
+        logList.value.push(`[${new Date().toLocaleString()}] Bought ${request.name} for ${request.price} coins`);
+        sniperHeadShotAudio.play();
+        sendResponse({success: true, message: 'successful'})
 
-  }
+    }
 
-  /**
-   * Handles the 'failed' action which increments the 'fails' counter when an attempt to purchase a player fails,
-   * logs the failure details in the logList, and plays the 'sniperMissAudio' sound.
-   */
-  else if (request.action === 'failed') {
-    fails.value++;
-    logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
-    sniperMissAudio.play();
-    sendResponse({success: true, message: 'successful'})
-  }
+    /**
+     * Handles the 'listed' action which logs the details of the listed player (min/max price) in the logList.
+     */
+    else if (request.action === 'listed') {
+        logList.value.push(`[${new Date().toLocaleString()}] Listed ${request.name} for min ${request.minList} and max ${request.maxList} coins`);
+
+    }
+
+    /**
+     * Handles the 'failed' action which increments the 'fails' counter when an attempt to purchase a player fails,
+     * logs the failure details in the logList, and plays the 'sniperMissAudio' sound.
+     */
+    else if (request.action === 'failed') {
+        fails.value++;
+        logList.value.push(`[${new Date().toLocaleString()}] Failed to buy ${request.name} for ${request.price} coins`);
+        sniperMissAudio.play();
+        sendResponse({success: true, message: 'successful'})
+    }
 });
 
 </script>
 
 <template>
-  <div class="popup-wrapper">
-    <div class="popup-container">
-      <h1 class="title">PlayerHeadShot</h1>
-      <div class="input-container">
-        <PlayerInput input-id="player-input"
-                     label="Player Name"
-                     v-model="playerName"
-                     placeholder="Search for a player"
-                     :playerList="nameList"
-                     :disabled="running"
-                     @inputChangeEvent="onPlayerInputChange"
-                     @selectedPlayerEvent="onPlayerSelected"
-        >
-        </PlayerInput>
-        <div class="custom-button-container">
-          <CustomInput input-id="search-limit-input"
-                       label="Search Limit"
-                       v-model="searchLimit"
-                       :disabled="running"
-                       :max="15000000"
-                       :min="0"
-                       @inputChangeEvent="onSearchLimitChange"
-                       placeholder="No limit">
-          </CustomInput>
-          <CustomInput input-id="max-buy-now-input"
-                       label="Max Buy Now"
-                       v-model="maxBuyNow"
-                       :disabled="running"
-                       :max="15000000"
-                       :min="0"
-                       @inputChangeEvent="onMaxBuyNowChange"
-                       placeholder="Max buy now">
-          </CustomInput>
+    <div class="popup-wrapper">
+        <div class="popup-container">
+            <h1 class="title">PlayerHeadShot</h1>
+            <div class="input-container">
+                <PlayerInput input-id="player-input"
+                             label="Player Name"
+                             v-model="playerName"
+                             placeholder="Search for a player"
+                             :playerList="nameList"
+                             :disabled="running"
+                             @inputChangeEvent="onPlayerInputChange"
+                             @selectedPlayerEvent="onPlayerSelected"
+                >
+                </PlayerInput>
+                <div class="custom-button-container">
+                    <CustomInput input-id="search-limit-input"
+                                 label="Search Limit"
+                                 v-model="searchLimit"
+                                 :disabled="running"
+                                 :max="15000000"
+                                 :min="0"
+                                 @inputChangeEvent="onSearchLimitChange"
+                                 placeholder="No limit">
+                    </CustomInput>
+                    <CustomInput input-id="purchase-limit-input"
+                                 label="Purchase limit"
+                                 v-model="purchaseLimit"
+                                 :disabled="running"
+                                 :max="100"
+                                 :min="0"
+                                 @inputChangeEvent="onPurchaseLimitChange"
+                                 placeholder="No limit"
+                    ></CustomInput>
+                </div>
+                <CustomInput id="max-buy-now-input"
+                             input-id="max-buy-now-input"
+                             label="Max Buy Now"
+                             v-model="maxBuyNow"
+                             :disabled="running"
+                             :max="15000000"
+                             :min="0"
+                             @inputChangeEvent="onMaxBuyNowChange"
+                             placeholder="Max buy now">
+                </CustomInput>
+                <AutoListCheckBox @checkChangedEvent="onCheckedChanged" :checked="autoListChecked"></AutoListCheckBox>
+                <div v-if="autoListChecked" class="custom-button-container">
+                    <CustomInput input-id="min-list-price-input"
+                                 label="Min list price"
+                                 :disabled="running"
+                                 v-model="minListPrice"
+                                 @inputChangeEvent="onMinListPriceChange"
+                                 :max="15000000"
+                                 :min="0"
+                                 placeholder="Min list price">
+                    </CustomInput>
+                    <CustomInput input-id="max-list-price-input"
+                                 label="Max list price"
+                                 :disabled="running"
+                                 v-model="maxListPrice"
+                                 @inputChangeEvent="onMaxListPriceChange"
+                                 :max="15000000"
+                                 :min="0"
+                                 placeholder="Max list price">
+                    </CustomInput>
+                </div>
+                <label v-if="autoListChecked && maxBuyNow && maxListPrice" class="net-label">
+                    Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
+                </label>
+                <CustomButton button-id="clear-all"
+                              class="clear-all-button"
+                              text="Clear All"
+                              :disabled="running"
+                              @click="onClearAllClicked"
+                ></CustomButton>
+                <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{
+                        "Advanced settings \u2699"
+                    }}</label>
+                <div v-if="advancedSettings" class="advanced-settings-container">
+                    <h2>Delay</h2>
+                    <hr>
+                    <div class="advanced-label-container">
+                        <label class="advanced-label description">If you are experiencing that the bot fails to purchase
+                            sometimes,
+                            or gets stuck, try to increase these delay metrics: </label>
+                    </div>
+                    <div class="advanced">
+                        <CustomInput input-id="wait-search-results-input"
+                                     :disabled="!advancedSettings"
+                                     v-model="searchResultDelay"
+                                     @inputChangeEvent="onSearchResultDelayChange"
+                                     :max="1000"
+                                     :min="0"
+                                     placeholder="Default 250 ms"
+                        ></CustomInput>
+                        <label class="advanced-label">Delay time for search results (milliseconds)</label>
+                    </div>
+                    <div class="advanced">
+                        <CustomInput input-id="wait-confirm-dialog-input"
+                                     :disabled="!advancedSettings"
+                                     v-model="confirmDialogDelay"
+                                     @inputChangeEvent="onConfirmDialogDelayChange"
+                                     :max="1000"
+                                     :min="0"
+                                     placeholder="Default 80 ms"
+                        ></CustomInput>
+                        <label class="advanced-label">Delay time for confirm dialog (milliseconds)</label>
+                    </div>
+                    <div class="advanced">
+                        <CustomInput input-id="wait-confirm-purchase-input"
+                                     :disabled="!advancedSettings"
+                                     v-model="confirmPurchaseDelay"
+                                     @inputChangeEvent="onCheckPurchaseDelayChange"
+                                     :max="1000"
+                                     :min="0"
+                                     placeholder="Default 800 ms"
+                        ></CustomInput>
+                        <label class="advanced-label">Delay time for purchase confirmation (milliseconds)</label>
+                    </div>
+                    <h2>Theme Color</h2>
+                    <hr>
+                    <div class="theme-color-container">
+                        <ThemeColorButton primary-color="#EF4765" secondary-color="#FF9A5A"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#3bff72" secondary-color="#81eee0"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#1628e5" secondary-color="#30ffe2"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#e875d1" secondary-color="#004aff"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#f82b2b" secondary-color="#d338f6"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#ffc01e" secondary-color="#f59393"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#8f3bcb" secondary-color="#42d73e"
+                                          @themeColorChange="changeThemeColors"/>
+                        <ThemeColorButton primary-color="#e00f3e" secondary-color="#efeb3a"
+                                          @themeColorChange="changeThemeColors"/>
+                    </div>
+                </div>
+                <CustomSlider :key="sliderKey" @sliderValueChange="onSliderValueChange" :rpm="rpm"></CustomSlider>
+            </div>
+            <div class="button-container">
+                <CustomButton button-id="stop-button"
+                              text="Stop"
+                              @click="stopSearch"
+                              :disabled="!running"
+                >
+                </CustomButton>
+                <CustomButton button-id="Search-button"
+                              text="Search"
+                              @click="startSearch"
+                              :disabled="running"
+                >
+                </CustomButton>
+            </div>
+            <SnipingResults :fails="fails" :buys="buys" :searches="searches"></SnipingResults>
+            <CustomLog :logList="logList"></CustomLog>
+            <label class="credit-label">Made by:
+                <a href="https://github.com/jenscaa" target="_blank">jenscaa</a>
+            </label>
         </div>
-        <AutoListCheckBox @checkChangedEvent="onCheckedChanged" :checked="autoListChecked"></AutoListCheckBox>
-        <div v-if="autoListChecked" class="custom-button-container">
-          <CustomInput input-id="min-list-price-input"
-                       label="Min list price"
-                       :disabled="running"
-                       v-model="minListPrice"
-                       @inputChangeEvent="onMinListPriceChange"
-                       :max="15000000"
-                       :min="0"
-                       placeholder="Min list price">
-          </CustomInput>
-          <CustomInput input-id="max-list-price-input"
-                       label="Max list price"
-                       :disabled="running"
-                       v-model="maxListPrice"
-                       @inputChangeEvent="onMaxListPriceChange"
-                       :max="15000000"
-                       :min="0"
-                       placeholder="Max list price">
-          </CustomInput>
-        </div>
-        <label v-if="autoListChecked && maxBuyNow && maxListPrice" class="net-label">
-          Profit: <p ref="profitRef" class="profit-p">{{ eaAfterTax(maxBuyNow, maxListPrice) }}</p>
-        </label>
-        <CustomButton button-id="clear-all"
-                      class="clear-all-button"
-                      text="Clear All"
-                      :disabled="running"
-                      @click="onClearAllClicked"
-        ></CustomButton>
-        <label @click="onAdvancedSettingsPressed" class="advanced-settings-label">{{ "Advanced settings \u2699" }}</label>
-        <div v-if="advancedSettings" class="advanced-settings-container">
-          <h2>Delay</h2>
-          <hr>
-          <div class="advanced-label-container">
-            <label class="advanced-label description">If you are experiencing that the bot fails to purchase some times,
-              or gets stuck, try to increase these delay metrics: </label>
-          </div>
-          <div class="advanced">
-            <CustomInput input-id="wait-search-results-input"
-                         :disabled="!advancedSettings"
-                         v-model="searchResultDelay"
-                         @inputChangeEvent="onSearchResultDelayChange"
-                         :max="1000"
-                         :min="0"
-                         placeholder="Default 250 ms"
-            ></CustomInput>
-            <label class="advanced-label">Delay time for search results (milliseconds)</label>
-          </div>
-          <div class="advanced">
-            <CustomInput input-id="wait-confirm-dialog-input"
-                         :disabled="!advancedSettings"
-                         v-model="confirmDialogDelay"
-                         @inputChangeEvent="onConfirmDialogDelayChange"
-                         :max="1000"
-                         :min="0"
-                         placeholder="Default 80 ms"
-            ></CustomInput>
-            <label class="advanced-label">Delay time for confirm dialog (milliseconds)</label>
-          </div>
-          <div class="advanced">
-            <CustomInput input-id="wait-confirm-purchase-input"
-                         :disabled="!advancedSettings"
-                         v-model="confirmPurchaseDelay"
-                         @inputChangeEvent="onCheckPurchaseDelayChange"
-                         :max="1000"
-                         :min="0"
-                         placeholder="Default 800 ms"
-            ></CustomInput>
-            <label class="advanced-label">Delay time for purchase confirmation (milliseconds)</label>
-          </div>
-          <h2>Theme Color</h2>
-          <hr>
-          <div class="theme-color-container">
-            <ThemeColorButton primary-color="#EF4765" secondary-color="#FF9A5A" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#3bff72" secondary-color="#81eee0" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#1628e5" secondary-color="#30ffe2" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#e875d1" secondary-color="#004aff" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#f82b2b" secondary-color="#d338f6" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#ffc01e" secondary-color="#f59393" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#8f3bcb" secondary-color="#42d73e" @themeColorChange="changeThemeColors"/>
-            <ThemeColorButton primary-color="#e00f3e" secondary-color="#efeb3a" @themeColorChange="changeThemeColors"/>
-          </div>
-        </div>
-        <CustomSlider :key="sliderKey" @sliderValueChange="onSliderValueChange" :rpm="rpm"></CustomSlider>
-      </div>
-      <div class="button-container">
-        <CustomButton button-id="stop-button"
-                      text="Stop"
-                      @click="stopSearch"
-                      :disabled="!running"
-        >
-        </CustomButton>
-        <CustomButton button-id="Search-button"
-                      text="Search"
-                      @click="startSearch"
-                      :disabled="running"
-        >
-        </CustomButton>
-      </div>
-      <SnipingResults :fails="fails" :buys="buys" :searches="searches"></SnipingResults>
-      <CustomLog :logList="logList"></CustomLog>
-      <label class="credit-label">Made by:
-        <a href="https://github.com/jenscaa" target="_blank">jenscaa</a>
-      </label>
     </div>
-  </div>
 </template>
 
 <style scoped>
 :root {
-  --primary-color: #EF4765;
-  --secondary-color: #FF9A5A;
+    --primary-color: #EF4765;
+    --secondary-color: #FF9A5A;
 }
 
 .title {
-  text-align: center;
-  align-self: center;
-  justify-content: center;
-  color: white;
-  margin: 0;
-  padding: 20px;
+    text-align: center;
+    align-self: center;
+    justify-content: center;
+    color: white;
+    margin: 0;
+    padding: 20px;
 }
 
 .popup-wrapper {
-  font-family: Arial, sans-serif;
-  background: rgba(0, 0, 0, 0.3);
+    font-family: Arial, sans-serif;
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .popup-container {
-  display: grid;
-  align-items: center;
+    display: grid;
+    align-items: center;
 }
 
 .input-container, .advanced-settings-container {
-  display: grid;
-  grid-template-rows: auto;
-  gap: 15px;
-  align-items: center;
+    display: grid;
+    grid-template-rows: auto;
+    gap: 15px;
+    align-items: center;
 }
 
 .advanced-settings-label {
-  justify-self: center;
-  justify-content: center;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-  padding: 5px;
-  cursor: pointer;
-  transition: transform 150ms ease-in-out;
+    justify-self: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    padding: 5px;
+    cursor: pointer;
+    transition: transform 150ms ease-in-out;
 }
 
 .advanced-settings-label:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .advanced-label-container {
-  justify-content: center;
-  align-content: center;
-  padding: 0 36px;
+    justify-content: center;
+    align-content: center;
+    padding: 0 36px;
 }
 
 .advanced {
-  justify-self: center;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  justify-items: center;
-  padding: 0 18px;
+    justify-self: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-items: center;
+    padding: 0 18px;
 }
 
 .advanced-label {
-  color: white;
-  align-self: center;
-  font-weight: bold;
-  text-align: start;
+    color: white;
+    align-self: center;
+    font-weight: bold;
+    text-align: start;
 }
 
 .advanced-settings-container h2 {
-  margin: 0;
-  padding-top: 5px;
-  padding-left: 10%;
-  color: white;
+    margin: 0;
+    padding-top: 5px;
+    padding-left: 10%;
+    color: white;
 }
 
 .advanced-settings-container hr {
-  justify-self: center;
-  margin: 0;
-  padding: 0;
-  width: 80%;
+    justify-self: center;
+    margin: 0;
+    padding: 0;
+    width: 80%;
 }
 
 .theme-color-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 5px;
-  padding: 0 10%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 5px;
+    padding: 0 10%;
 }
 
 .net-label {
-  color: white;
-  font-weight: bold;
-  text-align: center;
+    color: white;
+    font-weight: bold;
+    text-align: center;
 }
 
 .profit-p {
-  color: white;
-  display: inline;
-  margin: 0;
-  padding: 0;
-  width: fit-content;
-  height: fit-content;
+    color: white;
+    display: inline;
+    margin: 0;
+    padding: 0;
+    width: fit-content;
+    height: fit-content;
 }
 
 .custom-button-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  justify-items: center;
-  padding: 0 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-items: center;
+    padding: 0 18px;
 }
 
 .button-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }
 
 .clear-all-button {
-  margin: 0;
-  padding: 0;
-  width: 30%;
-  height: 32px;
+    margin: 0;
+    padding: 0;
+    width: 30%;
+    height: 32px;
 }
 
 .credit-label {
-  color: white;
-  justify-self: center;
-  justify-content: center;
-  text-align: center;
-  margin: 15px 0 5px 0;
-  font-weight: bold;
+    color: white;
+    justify-self: center;
+    justify-content: center;
+    text-align: center;
+    margin: 15px 0 5px 0;
+    font-weight: bold;
 }
 
 .credit-label a {
-  color: var(--secondary-color);
+    color: var(--secondary-color);
+}
+
+#max-buy-now-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: center;
+    justify-self: center;
+    width: 40%;
 }
 </style>
