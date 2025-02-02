@@ -2,7 +2,7 @@
 /**
  * Imports `ref` and from Vue to manage reactive data and properties.
  */
-import { ref } from 'vue';
+import {ref} from 'vue';
 import CustomLi from "./CustomLi.vue";
 
 /**
@@ -24,31 +24,31 @@ const emit = defineEmits(['inputChangeEvent', 'selectedPlayerEvent']);
  * @prop {Array<Object>} playerList - A list of players used to populate the suggestions. Defaults to an empty array.
  */
 const props = defineProps({
-  label: {
-    type: String,
-    default: ""
-  },
-  placeholder: {
-    type: String,
-    default: ""
-  },
-  inputId: {
-    type: String,
-    required: true
-  },
-  modelValue: {},
-  required: {
-    type: Boolean,
-    default: false
-  },
-  disabled: {
-    type: Boolean,
-    required: true
-  },
-  playerList: {
-    type: Array,
-    default: () => []
-  }
+    label: {
+        type: String,
+        default: ""
+    },
+    placeholder: {
+        type: String,
+        default: ""
+    },
+    inputId: {
+        type: String,
+        required: true
+    },
+    modelValue: {},
+    required: {
+        type: Boolean,
+        default: false
+    },
+    disabled: {
+        type: Boolean,
+        required: true
+    },
+    playerList: {
+        type: Array,
+        default: () => []
+    }
 
 });
 
@@ -73,11 +73,11 @@ const showSuggestions = ref(false);
  * Moves the highlight to the next suggestion, looping back to the first if at the end.
  */
 const onArrowDown = () => {
-  if (highlightedIndex.value < props.playerList.length - 1) {
-    highlightedIndex.value++;
-  } else {
-    highlightedIndex.value = 0; // Loop back to the first suggestion
-  }
+    if (highlightedIndex.value < props.playerList.length - 1) {
+        highlightedIndex.value++;
+    } else {
+        highlightedIndex.value = 0; // Loop back to the first suggestion
+    }
 };
 
 /**
@@ -85,11 +85,11 @@ const onArrowDown = () => {
  * Moves the highlight to the previous suggestion, looping back to the last if at the beginning.
  */
 const onArrowUp = () => {
-  if (highlightedIndex.value > 0) {
-    highlightedIndex.value--;
-  } else {
-    highlightedIndex.value = props.playerList.length - 1; // Loop back to the last suggestion
-  }
+    if (highlightedIndex.value > 0) {
+        highlightedIndex.value--;
+    } else {
+        highlightedIndex.value = props.playerList.length - 1; // Loop back to the last suggestion
+    }
 };
 
 /**
@@ -97,11 +97,11 @@ const onArrowUp = () => {
  * If a suggestion is highlighted, it is selected. If not, the current input value is used.
  */
 const onEnter = () => {
-  if (highlightedIndex.value >= 0) {
-    selectSuggestion(props.playerList[highlightedIndex.value].name);
-  } else {
-    selectSuggestion(props.modelValue)
-  }
+    if (highlightedIndex.value >= 0) {
+        selectSuggestion(props.playerList[highlightedIndex.value].name);
+    } else {
+        selectSuggestion(props.modelValue)
+    }
 };
 
 /**
@@ -111,16 +111,16 @@ const onEnter = () => {
  * @param {string} suggestion - The name of the selected player.
  */
 const selectSuggestion = (suggestion) => {
-  console.log("Suggestion ", suggestion);
-  emit('selectedPlayerEvent', suggestion)
-  hideSuggestions(); // Hide the suggestions list after selection
+    console.log("Suggestion ", suggestion);
+    emit('selectedPlayerEvent', suggestion)
+    hideSuggestions(); // Hide the suggestions list after selection
 };
 
 /**
  * Hides the suggestions list by setting `showSuggestions` to `false`.
  */
 const hideSuggestions = () => {
-  showSuggestions.value = false; // Hide the suggestions list
+    showSuggestions.value = false; // Hide the suggestions list
 };
 
 /**
@@ -130,155 +130,155 @@ const hideSuggestions = () => {
  * @param {Event} event - The input event triggered by typing in the input field.
  */
 const onInputEvent = (event) => {
-  highlightedIndex.value = -1; // Reset highlighted index when typing
-  showSuggestions.value = true; // Show the suggestions list
-  emit('inputChangeEvent', event.target.value); // Emit the new input value
+    highlightedIndex.value = -1; // Reset highlighted index when typing
+    showSuggestions.value = true; // Show the suggestions list
+    emit('inputChangeEvent', event.target.value); // Emit the new input value
 }
 </script>
 
 <template>
-  <div class="search-container">
+    <div class="search-container">
 
-    <div class="input-label-container">
-      <label :for="inputId">{{ label }}</label>
-      <div class="input-container">
-        <input
-            :id="inputId"
-            type="text"
-            :value="modelValue"
-            :placeholder="placeholder"
-            :required="required"
-            :disabled="disabled"
-            class="player-input"
-            @input="onInputEvent"
-            @keydown.down.prevent="onArrowDown"
-            @keydown.up.prevent="onArrowUp"
-            @keydown.enter.prevent="onEnter"
-            @keydown.esc="hideSuggestions"
-        />
-      </div>
+        <div class="input-label-container">
+            <label :for="inputId">{{ label }}</label>
+            <div class="input-container">
+                <input
+                    :id="inputId"
+                    type="text"
+                    :value="modelValue"
+                    :placeholder="placeholder"
+                    :required="required"
+                    :disabled="disabled"
+                    class="player-input"
+                    @input="onInputEvent"
+                    @keydown.down.prevent="onArrowDown"
+                    @keydown.up.prevent="onArrowUp"
+                    @keydown.enter.prevent="onEnter"
+                    @keydown.esc="hideSuggestions"
+                />
+            </div>
+        </div>
+
+        <!-- Suggestions List -->
+        <ul v-if="showSuggestions && playerList.length" class="suggestions-list">
+            <CustomLi v-for="(item, index) in playerList"
+                      :key="index"
+                      :class="{ 'highlighted': index === highlightedIndex }"
+                      @click="selectSuggestion(item.name)"
+                      :name="item.name"
+                      :rating="item.rating"
+            >
+            </CustomLi>
+        </ul>
     </div>
-
-    <!-- Suggestions List -->
-    <ul v-if="showSuggestions && playerList.length" class="suggestions-list">
-      <CustomLi v-for="(item, index) in playerList"
-                :key="index"
-                :class="{ 'highlighted': index === highlightedIndex }"
-                @click="selectSuggestion(item.name)"
-                :name="item.name"
-                :rating="item.rating"
-      >
-      </CustomLi>
-    </ul>
-  </div>
 </template>
 
 <style scoped>
 :root {
-  --primary-color: #EF4765;
-  --secondary-color: #FF9A5A;
+    --primary-color: #EF4765;
+    --secondary-color: #FF9A5A;
 }
 
 label {
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .input-label-container {
-  display: grid;
-  grid-template-rows: auto;
-  gap: 5px;
+    display: grid;
+    grid-template-rows: auto;
+    gap: 5px;
 }
 
 .input-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
+    position: relative;
+    display: inline-block;
+    width: 100%;
 }
 
 .input-container .player-input {
-  position: relative;
-  z-index: 1;
-  border-radius: 10px;
-  border: 4px solid transparent;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  font-size: 14px;
-  color: black;
-  background-clip: padding-box;
-  box-sizing: border-box;
-  width: 100%;
-  transition: background-color 150ms ease-in-out;
+    position: relative;
+    z-index: 1;
+    border-radius: 10px;
+    border: 4px solid transparent;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    font-size: 14px;
+    color: black;
+    background-clip: padding-box;
+    box-sizing: border-box;
+    width: 100%;
+    transition: background-color 150ms ease-in-out;
 }
 
 .input-container .player-input:hover {
-  position: relative;
-  border-radius: 10px;
-  border: 4px solid transparent;
-  background: rgba(255, 255, 255, 1);
-  padding: 10px;
-  font-size: 14px;
-  color: black;
-  background-clip: padding-box;
-  box-sizing: border-box;
-  width: 100%;
+    position: relative;
+    border-radius: 10px;
+    border: 4px solid transparent;
+    background: rgba(255, 255, 255, 1);
+    padding: 10px;
+    font-size: 14px;
+    color: black;
+    background-clip: padding-box;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .input-container .player-input:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
 .input-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 10px;
-  padding: 3px;
-  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
-  z-index: 0;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    padding: 3px;
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
+    z-index: 0;
 }
 
 .input-container .player-input:focus {
-  outline: none;
+    outline: none;
 }
 
 .search-container {
-  position: relative;
-  justify-self: center;
-  justify-content: center;
-  align-items: center;
-  width: 80%;
+    position: relative;
+    justify-self: center;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
 }
 
 .suggestions-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid var(--secondary-color);
-  border-radius: 5px;
-  max-height: 200px;
-  overflow-y: auto;
-  background-color: white;
-  position: absolute;
-  width: 100%;
-  z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--secondary-color);
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .suggestions-list li {
-  padding: 8px;
-  cursor: pointer;
+    padding: 8px;
+    cursor: pointer;
 }
 
 .suggestions-list li.highlighted {
-  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
-  color: white;
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
+    color: white;
 }
 </style>

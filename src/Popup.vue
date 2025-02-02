@@ -18,6 +18,7 @@ import ThemeColorButton from "./components/ThemeColorButton.vue";
  * @type {string} playerName - The name of the current player being searched.
  * @type {Array<Object>} nameList - List of player names and their ratings.
  * @type {number|undefined} searchLimit - The maximum number of searches allowed.
+ * @type {number|undefined} minBuyNow - The minimum 'Buy Now' price for purchasing.
  * @type {number|undefined} maxBuyNow - The maximum 'Buy Now' price for purchasing.
  * @type {number|undefined} minListPrice - The minimum listing price when selling players.
  * @type {number|undefined} maxListPrice - The maximum listing price when selling players.
