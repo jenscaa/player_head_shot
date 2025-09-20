@@ -11,7 +11,7 @@ Free EAFC 26 Sniper Bot with open source code.
 
 
 ## Installation guide
-Note: This extension will only work on Google Chrome.
+Note: This extension will only work on Google Chrome and Brave.
 These are the steps you will need to follow:
 1. **Clone the repository or download the zip file and extract it to your preferred folder.** 
 2. **Open Google Chrome or Brave.** 
