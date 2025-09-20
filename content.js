@@ -324,7 +324,7 @@ async function search(milliseconds, index, checked, minList, maxList) {
     updateMinBidPrice(index);
 
     // Simulates pressing the search button
-    pressButtonByClassName('call-to-action');
+    pressButtonByClassName('btn-standard primary');
 
     // Wait for search results to appear
     await wait(searchResultDelayWait);
@@ -421,9 +421,8 @@ async function performNextSearchStep(milliseconds) {
     await wait(300);
 
     // Retrieve the 'go back to search input screen'-button
-    const h1Element = Array.from(document.querySelectorAll('h1.title')).find(h1 => h1.textContent.trim() === 'Search Results');
-    const button = h1Element?.closest('div.ut-navigation-bar-view.navbar-style-landscape.currency-purchase')
-        ?.querySelector('button.ut-navigation-button-control');
+
+    const button = document.querySelector('.ut-navigation-button-control')
 
     // Press the button to return to the search input screen
     if (button) {
@@ -506,10 +505,11 @@ const listCard = (minList, maxList) => {
 
     // Retrieving the Min List- and Max List inputs and simulate value insertions on them.
     const listDiv = document.querySelector('div.ut-quick-list-panel-view');
+    pressButton(listDiv)
     const listInputs = listDiv.querySelectorAll('input.ut-number-input-control.filled');
     const minListInput = listInputs[0];
     const maxListInput = listInputs[1];
-    const listButton = listDiv.querySelector('button.btn-standard.call-to-action');
+    const listButton = listDiv.querySelector('button.btn-standard.primary');
     const inputEvent = new Event('input', {bubbles: true});
     const changeEvent = new Event('change', {bubbles: true});
     minListInput.value = minList;

@@ -56,8 +56,8 @@ const changeThemeColor = () => {
 
 <style scoped>
 :root {
-    --primary-color: #EF4765;
-    --secondary-color: #FF9A5A;
+  --primary-color: #3091ae;
+  --secondary-color: #5b51ae;
 }
 
 .color-theme-button {
@@ -65,7 +65,7 @@ const changeThemeColor = () => {
     min-height: max-content;
     position: relative;
     z-index: 1;
-    background: linear-gradient(to bottom right, #EF4765, #FF9A5A);
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
     padding: 10px 20px;
     font-size: 16px;
     border-radius: 10px;
