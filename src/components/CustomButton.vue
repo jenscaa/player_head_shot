@@ -30,8 +30,8 @@ const props = defineProps({
 
 <style scoped>
 :root {
-  --primary-color: #3091ae;
-  --secondary-color: #5b51ae;
+    --primary-color: #3bff72;
+    --secondary-color: #81eee0;
 }
 
 .btn {
