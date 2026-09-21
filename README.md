@@ -1,5 +1,5 @@
 # PlayerHeadShot
-Free EAFC 26 Sniper Bot with open source code.
+Free EAFC 27 Sniper Bot with open source code.
 - Written by: Jens Christian Aanestad
 
 ## Some screenshots from the extension
@@ -8,6 +8,10 @@ Free EAFC 26 Sniper Bot with open source code.
 
 <img src="src/assets/img/example2.gif" alt="Sniping bot" width="600"/>
 
+
+## Disclaimer
+
+Excessive use of this tool may result in a temporary soft ban or more severe restrictions. Use at your own risk. You should generally be fine at around **70 searches per minute** though.
 
 
 ## Installation guide
