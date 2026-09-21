@@ -658,11 +658,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     <h2>Theme Color</h2>
                     <hr>
                     <div class="theme-color-container">
+                        <ThemeColorButton primary-color="#3bff72" secondary-color="#81eee0"
+                                          @themeColorChange="changeThemeColors"/>
                         <ThemeColorButton primary-color="#3091ae" secondary-color="#5b51ae"
                                           @themeColorChange="changeThemeColors"/>
                         <ThemeColorButton primary-color="#EF4765" secondary-color="#FF9A5A"
-                                          @themeColorChange="changeThemeColors"/>
-                        <ThemeColorButton primary-color="#3bff72" secondary-color="#81eee0"
                                           @themeColorChange="changeThemeColors"/>
                         <ThemeColorButton primary-color="#1628e5" secondary-color="#30ffe2"
                                           @themeColorChange="changeThemeColors"/>
@@ -711,8 +711,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 <style scoped>
 :root {
-    --primary-color: #3091ae;
-    --secondary-color: #5b51ae;
+    --primary-color: #3bff72;
+    --secondary-color: #81eee0;
 }
 
 .title {
